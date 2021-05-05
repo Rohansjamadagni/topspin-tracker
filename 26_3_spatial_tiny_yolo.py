@@ -14,25 +14,12 @@ Spatial Tiny-yolo example
 '''
 
 # Tiny yolo v3/4 label texts
-labelMap = [
-    "person",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
-    "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
-    "bird",           "cat",        "dog",           "horse",         "sheep",       "cow",           "elephant",
-    "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",    "handbag",       "tie",
-    "suitcase",       "frisbee",    "skis",          "snowboard",     "sports ball", "kite",          "baseball bat",
-    "baseball glove", "skateboard", "surfboard",     "tennis racket", "bottle",      "wine glass",    "cup",
-    "fork",           "knife",      "spoon",         "bowl",          "banana",      "apple",         "sandwich",
-    "orange",         "broccoli",   "carrot",        "hot dog",       "pizza",       "donut",         "cake",
-    "chair",          "sofa",       "pottedplant",   "bed",           "diningtable", "toilet",        "tvmonitor",
-    "laptop",         "mouse",      "remote",        "keyboard",      "cell phone",  "microwave",     "oven",
-    "toaster",        "sink",       "refrigerator",  "book",          "clock",       "vase",          "scissors",
-    "teddy bear",     "hair drier", "toothbrush"
-]
+labelMap = ['ball']
 
 syncNN = True
 
 # Get argument first
-nnBlobPath = str((Path(__file__).parent / Path('models/tiny-yolo-v4_openvino_2021.2_6shave.blob')).resolve().absolute())
+nnBlobPath = str((Path(__file__).parent / Path('models/topspin_6shave.blob')).resolve().absolute())
 if len(sys.argv) > 1:
     nnBlobPath = sys.argv[1]
 
@@ -42,6 +29,7 @@ if not Path(nnBlobPath).exists():
 
 # Start defining a pipeline
 pipeline = dai.Pipeline()
+pipeline.setOpenVINOVersion(dai.OpenVINO.Version.VERSION_2021_1)
 
 # Define a source - color camera
 colorCam = pipeline.createColorCamera()
@@ -60,7 +48,7 @@ xoutNN.setStreamName("detections")
 xoutBoundingBoxDepthMapping.setStreamName("boundingBoxDepthMapping")
 xoutDepth.setStreamName("depth")
 
-
+colorCam.setPreviewKeepAspectRatio(keep=False)
 colorCam.setPreviewSize(416, 416)
 colorCam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
 colorCam.setInterleaved(False)
@@ -81,7 +69,7 @@ spatialDetectionNetwork.setBoundingBoxScaleFactor(0.5)
 spatialDetectionNetwork.setDepthLowerThreshold(100)
 spatialDetectionNetwork.setDepthUpperThreshold(5000)
 # Yolo specific parameters
-spatialDetectionNetwork.setNumClasses(80)
+spatialDetectionNetwork.setNumClasses(1)
 spatialDetectionNetwork.setCoordinateSize(4)
 spatialDetectionNetwork.setAnchors(np.array([10,14, 23,27, 37,58, 81,82, 135,169, 344,319]))
 spatialDetectionNetwork.setAnchorMasks({ "side26": np.array([1,2,3]), "side13": np.array([3,4,5]) })
