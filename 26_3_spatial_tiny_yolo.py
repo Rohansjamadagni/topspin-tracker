@@ -33,9 +33,12 @@ pipeline.setOpenVINOVersion(dai.OpenVINO.Version.VERSION_2021_1)
 
 # Define a source - color camera
 colorCam = pipeline.createColorCamera()
+colorCam.setFps(90)
 spatialDetectionNetwork = pipeline.createYoloSpatialDetectionNetwork()
 monoLeft = pipeline.createMonoCamera()
 monoRight = pipeline.createMonoCamera()
+monoLeft.setFps(90)
+monoRight.setFps(90)
 stereo = pipeline.createStereoDepth()
 
 xoutRgb = pipeline.createXLinkOut()
