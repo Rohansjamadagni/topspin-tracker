@@ -68,7 +68,7 @@ rgbOut.setStreamName("color")
 
 rgb_encoder = pipeline.createVideoEncoder()
 rgb_encoder.setDefaultProfilePreset(rgb.getVideoSize(), rgb.getFps(), dai.VideoEncoderProperties.Profile.MJPEG)
-rgb_encoder.setLossless(True)
+rgb_encoder.setLossless(False)
 rgb.video.link(rgb_encoder.input)
 rgb_encoder.bitstream.link(rgbOut.input)
 
@@ -76,10 +76,12 @@ rgb_encoder.bitstream.link(rgbOut.input)
 left = pipeline.createMonoCamera()
 left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
 left.setBoardSocket(dai.CameraBoardSocket.LEFT)
+left.setFps(50)
 
 right = pipeline.createMonoCamera()
 right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
 right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+right.setFps(50)
 
 stereo = pipeline.createStereoDepth()
 stereo.setConfidenceThreshold(240)
@@ -110,13 +112,13 @@ if SAVE_MONO:
     if args.encode:
         left_encoder = pipeline.createVideoEncoder()
         left_encoder.setDefaultProfilePreset(left.getResolutionSize(), left.getFps(), dai.VideoEncoderProperties.Profile.MJPEG)
-        left_encoder.setLossless(True)
+        left_encoder.setLossless(False)
         stereo.rectifiedLeft.link(left_encoder.input)
         left_encoder.bitstream.link(leftOut.input)
 
         right_encoder = pipeline.createVideoEncoder()
         right_encoder.setDefaultProfilePreset(right.getResolutionSize(), right.getFps(), dai.VideoEncoderProperties.Profile.MJPEG)
-        right_encoder.setLossless(True)
+        right_encoder.setLossless(False)
         stereo.rectifiedRight.link(right_encoder.input)
         right_encoder.bitstream.link(rightOut.input)
     else:
@@ -233,8 +235,6 @@ ps = PairingSystem()
 
 # Pipeline defined, now the device is connected to
 with dai.Device(pipeline) as device:
-    # Start pipeline
-    device.startPipeline()
 
     qControl = device.getInputQueue('control')
 
