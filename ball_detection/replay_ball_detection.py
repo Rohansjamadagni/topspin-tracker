@@ -6,7 +6,17 @@ from multiprocessing import Process, Queue
 import cv2
 import depthai as dai
 import numpy as np
+import pandas
+import time
+import pandas as pd
 
+data_to_save = {
+    'timestamp' : [],
+    'x' : [],
+    'y' : [],
+    'z' : [],
+    'confidence' : []
+}
 
 labelMap = ['ball']
 
@@ -86,6 +96,20 @@ spatialDetectionNetwork.passthrough.link(rgbOut.input)
 
 def to_planar(arr, shape):
     return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
+
+def append_data(x, y, z, confidence):
+    global data_to_save
+    current_time = time.time()
+    data_to_save['timestamp'].append(current_time)
+    data_to_save['x'].append(x)
+    data_to_save['y'].append(y)
+    data_to_save['z'].append(z)
+    data_to_save['confidence'].append(confidence)
+
+def save_data():
+    global data_to_save
+    data_ = pd.DataFrame(data_to_save)
+    data_.to_csv('result.csv')
 
 # Pipeline defined, now the device is connected to
 with dai.Device(pipeline) as device:
@@ -186,12 +210,19 @@ with dai.Device(pipeline) as device:
                 cv2.putText(rgbFrame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
                 cv2.putText(rgbFrame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
                 cv2.putText(rgbFrame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-
                 cv2.rectangle(rgbFrame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
+
+                append_data(
+                    int(detection.spatialCoordinates.x),
+                    int(detection.spatialCoordinates.y),
+                    int(detection.spatialCoordinates.z),
+                    detection.confidence
+                    )
 
         cv2.imshow("rgb", rgbFrame)
         cv2.imshow("depth", depthFrameColor)
 
         if cv2.waitKey(1) == ord('q'):
+            save_data()
             break
 
