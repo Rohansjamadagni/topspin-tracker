@@ -1,0 +1,11 @@
+---
+- hosts: cameras
+  
+  tasks:
+    - name: test
+      shell: python3 ~/test.py
+      register: shell_result
+
+    - debug:
+        var: shell_result.stdout_lines
+
