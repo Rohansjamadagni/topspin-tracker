@@ -2,9 +2,21 @@
 - hosts: cameras
   
   tasks:
-    - name: test
-      shell: python3 ~/test.py
+    - name: mqtt_connect
+      shell: python3 ~/Documents/topspin/mqtt/client.py &
       register: shell_result
+
+    # - name: record_start
+    #   shell: python3 ~/test.py
+    #   register: shell_result
+
+    # - name: mqtt_disconnect
+    #   shell: python3 ~/test.py
+    #   register: shell_result
+    
+    # - name: record_stop
+    #   shell: python3 ~/test.py
+    #   register: shell_result
 
     - debug:
         var: shell_result.stdout_lines
