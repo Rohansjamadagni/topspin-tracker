@@ -1,0 +1,29 @@
+---
+- hosts: cameras
+  gather_facts: no
+
+  tasks:
+  - name: Check for existance of topspin-tracker folder in Pose Estimator
+    stat:
+      path: $HOME/Documents/topspin-tracker
+    when: inventory_hostname in groups['pose_estimator']
+    register: pose_estimator_exist
+
+  - name: Check for existance of topspin-tracker folder in Ball Detector
+    stat:
+      path: $HOME/Documents/topspin
+    when: inventory_hostname in groups['ball_detector']
+    register: ball_detector_exist 
+
+  - name: Copy pose_estimation folder if it doesn't exist     
+    when: (pose_estimator_exist.stat.exists == False) and (inventory_hostname in groups['pose_estimator']) 
+    copy: 
+      src: ../pose_estimation/
+      dest: $HOME/Documents/topspin-tracker
+    
+  - name: Copy ball_detection folder if it doesn't exist
+    when: (ball_detector_exist.stat.exists == False) and (inventory_hostname in groups['ball_detector'])
+    copy: 
+      src: ../ball_detection/
+      dest: $HOME/Documents/topspin-tracker
+     
