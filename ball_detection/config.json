@@ -1,0 +1,23 @@
+{
+    "meta_data" : {
+        "device_id": "1",
+        "device_function": "Ball Detector",
+        "device_connected": false,
+        "failure": {
+            "status": false,
+            "error": ""
+        },
+        "device_status": {
+            "record": {
+                "flag": false,
+                "frame_count": 0,
+                "completed": false
+            },
+            "replay": {
+                "flag": false,
+                "progress": 0,
+                "completed": false
+            }
+        }
+    }
+}
