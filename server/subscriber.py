@@ -15,13 +15,13 @@ def on_connect(client, userdata, detect_flags, rc):
     ansible()
 
 def ansible():
-    os.system('ansible-playbook -i ../ansible/hosts ../ansible/scrpit.yml --tags "mqtt_connect" &')
+    os.system('ansible-playbook -i ../ansible/hosts ../ansible/control.yml --tags "mqtt_connect" &')
 
 def start_record():
-    os.system('ansible-playbook -i ../ansible/hosts ../ansible/scrpit.yml --tags "start_record" &')
+    os.system('ansible-playbook -i ../ansible/hosts ../ansible/control.yml --tags "start_record" &')
 
 def start_replay():
-    os.system('ansible-playbook -i ../ansible/hosts ../ansible/scrpit.yml --tags "start_replay" &')
+    os.system('ansible-playbook -i ../ansible/hosts ../ansible/control.yml --tags "start_replay" &')
 
 
 def on_message(client, userdata, message):
