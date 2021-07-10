@@ -7,5 +7,5 @@ def on_connect(contents):
 def on_record(contents):
     sys.stdout.write(f"\rCurrent record frame number: {contents}")
 
-def on_record(contents):
-    sys.stdout.write(f"\rCurrent frame number: {contents}")
+def on_replay(contents):
+    sys.stdout.write(f"\rCurrent replay frame number: {contents}")
