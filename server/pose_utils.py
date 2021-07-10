@@ -13,3 +13,7 @@ def on_coords(contents):
 
 def on_rcv_frame_count(contents):
     sys.stdout.write(f"\rCurrent frame number: {contents}")
+    sys.stdout.flush()
+
+def on_vibration(contents):
+    pass
