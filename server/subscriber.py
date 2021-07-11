@@ -6,11 +6,13 @@ import pose_utils as pu
 import ball_utils as bu
 import ansible_utils as au
 
+broker_ip = json.load(open('../config.json', 'r'))['broker']
+
 ball = mqtt.Client()
 pose = mqtt.Client()
 
-ball.connect('10.147.17.95', 1883)
-pose.connect('10.147.17.95', 1883)
+ball.connect(broker_ip, 1883)
+pose.connect(broker_ip, 1883)
 
 def on_failure():
     print("PACKED AF")
@@ -65,5 +67,3 @@ while True:
 
     ball.loop_start()
     pose.loop_start()
-
-# thread = ...(func, args=(d_id,))

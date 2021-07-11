@@ -14,18 +14,18 @@ meta_data_ = open('config.json', 'r')
 meta_data = json.load(meta_data_)
 meta_data = meta_data['meta_data']
 
+broker_ip = json.load(open('../config.json', 'r'))['broker']
+
 client = mqtt.Client()
 # connection refused if fails
 try:
-    client.connect('192.168.0.102', 1883)
+    client.connect(broker_ip, 1883)
 except:
     # exit if fails
     sys.exit(1)
 
 meta_data['device_connected'] = True
 client.publish("topspin/test", json.dumps(meta_data))
-
-
 
 def check_range(min_val, max_val):
     def check_fn(value):

@@ -25,17 +25,18 @@ meta_data_ = open('config.json', 'r')
 meta_data = json.load(meta_data_)
 meta_data = meta_data['meta_data']
 
+broker_ip = json.load(open('../config.json', 'r'))['broker']
+
 client = mqtt.Client()
 # connection refused if fails
 try:
-    client.connect('10.147.17.95', 1883)
+    client.connect(broker_ip, 1883)
 except:
     # exit if fails
     sys.exit(1)
 
 meta_data['device_connected'] = True
 client.publish("topspin/test", json.dumps(meta_data))
-
 
 def get_path_name():
 	f = open('filenames.txt', 'r')
@@ -44,7 +45,6 @@ def get_path_name():
 	return str(data_)
 
 parser = argparse.ArgumentParser()
-
 
 try:
     labelMap = ['ball']
@@ -59,7 +59,7 @@ try:
     dest = Path(args.path).resolve().absolute()
     print(str(dest))
     frames = os.listdir(str(dest))
-    frames_sorted = [] 
+    frames_sorted = []
     for i in frames:
         if os.path.isdir(str(dest)+'/'+i):
             frames_sorted.append(int(i))
@@ -256,9 +256,9 @@ try:
                         int(detection.spatialCoordinates.z),
                         detection.confidence
                         )
-                    
+
             progress = frame_folder/frames_sorted[-1]*100
-            # publish progress every 5% 
+            # publish progress every 5%
             if int(frame_folder) % int(0.05*frames_sorted[-1]) == 0:
                 meta_data['device_status']['replay']['progress'] = int(progress)
                 client.publish("topspin/test", json.dumps(meta_data))
