@@ -21,11 +21,11 @@ data_to_save = {
     'confidence' : []
 }
 
-meta_data_ = open('config.json', 'r')
+meta_data_ = open('ips.json', 'r')
 meta_data = json.load(meta_data_)
 meta_data = meta_data['meta_data']
 
-broker_ip = json.load(open('../config.json', 'r'))['broker']
+broker_ip = json.load(open('../ips.json', 'r'))['broker']
 
 client = mqtt.Client()
 # connection refused if fails

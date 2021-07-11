@@ -6,7 +6,7 @@ import pose_utils as pu
 import ball_utils as bu
 import ansible_utils as au
 
-broker_ip = json.load(open('../config.json', 'r'))['broker']
+broker_ip = json.load(open('../ips.json', 'r'))['broker']
 
 ball = mqtt.Client()
 pose = mqtt.Client()
