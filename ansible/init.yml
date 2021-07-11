@@ -7,20 +7,19 @@
     when: inventory_hostname in groups['ball_detector']
     synchronize:
       src: ../ball_detection/
-      dest: $HOME/Documents/topspin-tracker
+      dest: ~/Documents/topspin-tracker
       delete: yes
       recursive: true
-
 
   - name: synchronize push pose estimation folder
     when: inventory_hostname in groups['pose_estimator']
     synchronize:
       src: ../pose_estimation/
-      dest: $HOME/Documents/topspin-tracker
+      dest: ~/Documents/topspin-tracker
       delete: yes
       recursive: true
      
-  - name: pip install requirements
-    shell: "python -m pip install -r requirements.txt"
-    args:
-      chdir: $HOME/Documents/topspin-tracker
+  # - name: pip install requirements
+  #   shell: "python -m pip install -r requirements.txt"
+  #   args:
+  #     chdir: $HOME/Documents/topspin-tracker
