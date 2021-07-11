@@ -25,7 +25,7 @@ except:
     sys.exit(1)
 
 meta_data['device_connected'] = True
-client.publish("topspin/test", json.dumps(meta_data))
+client.publish("bill/connected", "Ball detector Connected!")
 
 def check_range(min_val, max_val):
     def check_fn(value):
@@ -299,8 +299,7 @@ try:
                 frame_q.put(obj)
                 if count % 60 == 0:
                     # publish count
-                    meta_data['device_status']['record']['frame_count'] = count
-                    client.publish("topspin/test", json.dumps(meta_data))
+                    client.publish("ball/progress/record", str(count))
                 count += 1
 
             if cv2.waitKey(1) == ord('q'):
@@ -311,12 +310,6 @@ try:
 
     frame_q.put(None)
     store_p.join()
-    meta_data['device_status']['record']['frame_count'] = count
-    meta_data['device_status']['record']['flag'] = False
-    meta_data['device_status']['record']['completed'] = True
-    client.publish("topspin/test", json.dumps(meta_data))
 except Exception as e:
-    meta_data['failure']['status'] = True
-    meta_data['failure']['error'] = str(e)
-    client.publish("topspin/test", json.dumps(meta_data))
+    client.publish("topspin/test", str(e))
     print(e)

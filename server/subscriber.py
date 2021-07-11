@@ -14,8 +14,11 @@ pose = mqtt.Client()
 ball.connect(broker_ip, 1883)
 pose.connect(broker_ip, 1883)
 
-def on_failure():
-    print("PACKED AF")
+
+def pack(error=None):
+    if not error:
+        print(error)
+    print("PACK BRO")
     au.ansible_destroy()
     sys.exit(1)
 
@@ -42,6 +45,8 @@ def on_message_pose(client, ud, msg):
         pu.on_rcv_frame_count(contents)
     elif msg.topic == 'pose/vibration':
         pu.on_vibration(contents)
+    elif msg.topic == 'pose/error':
+        pack(contents)
     else:
         print('Wrong pose topic')
 
@@ -55,6 +60,8 @@ def on_message_ball(client, ud, msg):
     elif msg.topic == 'ball/progress/replay':
         bu.on_replay(contents)
     # receive data from ansible to start replay
+    elif msg.topic == 'ball/error':
+        pack(contents)                
     else:
         print('Wrong ball topic')
 
