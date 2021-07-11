@@ -17,7 +17,7 @@ meta_data = meta_data['meta_data']
 client = mqtt.Client()
 # connection refused if fails
 try:
-    client.connect('10.147.17.95', 1883)
+    client.connect('192.168.0.102', 1883)
 except:
     # exit if fails
     sys.exit(1)
@@ -41,7 +41,7 @@ def check_range(min_val, max_val):
 def get_path_name():
     f = open('filenames.txt', 'a+')
     filename_ = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-    filename_ = '/data/data-' + filename_
+    filename_ = '../data/data-' + filename_
     f.write(filename_ +'\n')
     return str(filename_)
 
@@ -319,3 +319,4 @@ except Exception as e:
     meta_data['failure']['status'] = True
     meta_data['failure']['error'] = str(e)
     client.publish("topspin/test", json.dumps(meta_data))
+    print(e)

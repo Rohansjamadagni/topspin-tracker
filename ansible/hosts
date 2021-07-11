@@ -1,10 +1,10 @@
 [cameras]
 jeffrey@10.147.17.100
-rohanj@10.147.17.95
+rohanj@192.168.0.161
 
-[ball_detector]
+[ball_detector] 
+rohanj@192.168.0.161
+
+[pose_estimator] 
 jeffrey@10.147.17.100
-
-[pose_estimator]
-rohanj@10.147.17.95
 

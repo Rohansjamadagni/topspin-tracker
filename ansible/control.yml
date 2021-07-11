@@ -1,25 +1,18 @@
 ---
 - hosts: cameras
-  
-  tasks:
-    - name: mqtt_connect
-      shell: python3 ~/Documents/topspin/mqtt/client.py &
-      register: shell_result
-      tags: mqtt_connect
+  gather_facts: no
 
+  tasks:
     - name: Start recording
-      shell: chdir=$HOME/Documents/topspin-tracker python3 record.py -m 10 && echo "Done
-      register: shell_result
+      shell: nohup python3 record.py > record.log &
+      args:
+        chdir: $HOME/Documents/topspin-tracker
       tags: start_record
-    # - name: mqtt_disconnect
-    #   shell: python3 ~/test.py
-    #   register: shell_result
     
     - name: Start Processing
-      shell: chdir=$HOME/Documents/topspin-tracker python3 replay.py && echo "Done
-      register: shell_result
+      shell: nohup python3 replay.py > replay.log &
+      args:
+        chdir: $HOME/Documents/topspin-tracker 
       tags: start_replay
 
-    - debug:
-        var: shell_result.stdout_lines
 

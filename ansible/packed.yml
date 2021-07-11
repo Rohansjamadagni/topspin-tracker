@@ -1,0 +1,8 @@
+---
+- hosts: all  
+  gather_facts: no
+
+  tasks:
+  - name: stop all running python processes 
+    shell: pkill -f "record.py" & pkill -f "replay.py" & pkill -f "publisher.py"
+    ignore_errors: yes
