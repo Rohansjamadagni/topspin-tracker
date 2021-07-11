@@ -11,10 +11,6 @@
       delete: yes
       recursive: true
 
-  - name: pip install requirements
-    shell: "python -m pip install -r requirements.txt"
-    args:
-      chdir: $HOME/Documents/topspin-tracker
 
   - name: synchronize push pose estimation folder
     when: inventory_hostname in groups['pose_estimator']
@@ -23,5 +19,8 @@
       dest: $HOME/Documents/topspin-tracker
       delete: yes
       recursive: true
-
      
+  - name: pip install requirements
+    shell: "python -m pip install -r requirements.txt"
+    args:
+      chdir: $HOME/Documents/topspin-tracker
