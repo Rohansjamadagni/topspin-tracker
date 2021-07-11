@@ -1,8 +1,10 @@
 # Topspin Trackers
 
-Respoitory for OpenCV AI Competition 2021 Phase II
+Respository for OpenCV AI Competition 2021 Phase II
 
-TODO
+#### TODO
 
-- [ ] Fix threading issue in replay for pose
-- [ ] Start with the class design for communication
+- [ ] 3D print fixture
+- [x] Get OAK-Ds working on RPi
+- [ ] Convert 4 shave to 6 shave blob for pose
+- [ ] Selective replay mechanism
