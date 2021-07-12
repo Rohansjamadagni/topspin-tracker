@@ -1,9 +1,9 @@
 import numpy as np
 import cv2
 from numpy.core.fromnumeric import trace
-import pose_estimation.mediapipe_utils as mpu
+import mediapipe_utils as mpu
 from pathlib import Path
-from pose_estimation.FPS import FPS
+from FPS import FPS
 import depthai as dai
 import time
 import marshal
@@ -272,7 +272,7 @@ class BlazeposeDepthai:
         So we build this code from the content of the file template_manager_script.py which is a python template
         '''
         # Read the template
-        with open('src/pose_estimation/src/pose_estimation/template_manager_script.py', 'r') as file:
+        with open('template_manager_script.py', 'r') as file:
             template = Template(file.read())
 
         # Perform the substitution
