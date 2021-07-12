@@ -24,7 +24,7 @@ def pack(error=None):
         print(error)
     print("PACK BRO")
     au.ansible_destroy()
-    sys.exit(1)
+    exit()
 
 def on_connect_ball(client, userdata, detect_flags, rc):
     client.subscribe("ball/#")
