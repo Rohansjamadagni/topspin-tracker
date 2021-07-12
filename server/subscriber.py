@@ -1,19 +1,23 @@
 # subscriber
-import paho.mqtt.client as mqtt
 import os
 import subprocess
+import json
+
+import paho.mqtt.client as mqtt
+
 import pose_utils as pu
 import ball_utils as bu
 import ansible_utils as au
 
-broker_ip = json.load(open('../ips.json', 'r'))['broker']
+broker_config = json.load(open('../ips.json', 'r'))
+broker_ip = broker_config['broker_ip']
+broker_port = broker_config['broker_port']
 
 ball = mqtt.Client()
 pose = mqtt.Client()
 
-ball.connect(broker_ip, 1883)
-pose.connect(broker_ip, 1883)
-
+ball.connect(broker_ip, broker_port)
+pose.connect(broker_ip, broker_port)
 
 def pack(error=None):
     if not error:
@@ -32,7 +36,7 @@ def on_connect_pose(client, userdata, detect_flags, rc):
     client.subscribe("pose/#")
     print("Connected to the pose topic!")
     print("Attempting to connect to pose camera")
-    au.ansible()
+    # au.ansible()
 
 def on_message_pose(client, ud, msg):
     contents = msg.payload.decode()
@@ -45,6 +49,8 @@ def on_message_pose(client, ud, msg):
         pu.on_rcv_frame_count(contents)
     elif msg.topic == 'pose/vibration':
         pu.on_vibration(contents)
+    elif msg.topic == 'pose/finished':
+        pu.on_finish(contents)
     elif msg.topic == 'pose/error':
         pack(contents)
     else:
@@ -61,13 +67,13 @@ def on_message_ball(client, ud, msg):
         bu.on_replay(contents)
     # receive data from ansible to start replay
     elif msg.topic == 'ball/error':
-        pack(contents)                
+        pack(contents)
     else:
         print('Wrong ball topic')
 
 while True:
-    ball.on_connect = on_connect_ball
-    ball.on_message = on_message_ball
+    # ball.on_connect = on_connect_ball
+    # ball.on_message = on_message_ball
 
     pose.on_connect = on_connect_pose
     pose.on_message = on_message_pose

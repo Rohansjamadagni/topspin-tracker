@@ -7,43 +7,31 @@ import cv2
 # MPII : (0 - r ankle, 1 - r knee, 2 - r hip, 3 - l hip, 4 - l knee, 5 - l ankle, 6 - pelvis,
 # 7 - thorax, 8 - upper neck, 9 - head top, 10 - r wrist, 11 - r elbow, 12 - r shoulder, 13 - l shoulder, 14 - l elbow, 15 - l wrist)
 
-def _get_columns(dataset):
-	if dataset == 'coco':
-		parts = ['Nose',
-			   'L-eye', 'R-eye',
-			   'L-ear', 'R-ear',
-			   'L-shoulder', 'R-shoulder',
-			   'L-elbow', 'R-elbow',
-			   'L-wrist', 'R-wrist',
-			   'L-hip', 'R-hip',
-			   'L-knee', 'R-knee',
-			   'L-ankle', 'R-ankle']
-	elif dataset == "oak-d-coco":
-		parts = ['Nose', 'Neck', 'R-shoulder', 'R-elbow', 'R-wrist', 'L-shoulder', 'L-elbow', 'L-wrist', 'R-hip', 'R-knee', 'R-ankle',
-				 'L-hip', 'L-knee', 'L-ankle', 'R-eye', 'L-eye', 'R-ear', 'L-ear']
-	elif dataset == 'mpii':
-		parts = ['R-ankle', 'R-knee',
-				 'R-hip', 'L-hip',
-				 'L-knee', 'L-ankle',
-				 'Pelvis', 'Thorax',
-				 'Upper-Neck', 'Head-Top',
-				 'R-wrist', 'R-elbow',
-				 'R-shoulder', 'L-shoulder',
-				 'L-elbow', 'L-wrist'
-				]
+def _get_columns():
+	column_names = ['Nose',
+		   'L-eye', 'R-eye',
+		   'L-ear', 'R-ear',
+		   'L-shoulder', 'R-shoulder',
+		   'L-elbow', 'R-elbow',
+		   'L-wrist', 'R-wrist',
+		   'L-hip', 'R-hip',
+		   'L-knee', 'R-knee',
+		   'L-ankle', 'R-ankle']
 
-	divisions = ['X', 'Y', 'Confidence']
+	divisions = ['X', 'Y', 'Z']
 
 	columns = []
 
-	for part in parts:
+	for column in column_names:
 		for div in divisions:
-			columns.append(f'{part}-{div}')
+			columns.append(f'{column}-{div}')
+
+	columns.append('Timestamp')
 
 	return columns
 
-def initialize_csv(filename, dataset):
-	columns = _get_columns(dataset)
+def initialize_csv(filename):
+	columns = _get_columns()
 
 	df = pd.DataFrame(columns=columns)
 	df.to_csv(f'{filename}')
@@ -51,8 +39,8 @@ def initialize_csv(filename, dataset):
 	# releasing memory
 	del df
 
-def write_list_to_csv(filename, list, dataset, beginning=False):
-	columns = _get_columns(dataset)
+def write_list_to_csv(filename, list, beginning=False):
+	columns = _get_columns()
 	# print(columns)
 
 	if beginning:
@@ -66,7 +54,7 @@ def write_list_to_csv(filename, list, dataset, beginning=False):
 		df = pd.DataFrame(list, columns=columns)
 		df.to_csv(f'{filename}', mode='a', header=False)
 
-def _filter_file(csv_file, hand, window_length, polyorder):
+def filter_file(csv_file, hand, window_length, polyorder):
 	df = pd.read_csv(csv_file, delimiter=',')
 
 	if hand == 'right':
@@ -172,4 +160,4 @@ def normalize_file(csv_file, vid):
 
 def csv_savgol_filter_directory(csv_dir, hand, window_length=13, polyorder=2):
 	for csv_file in os.listdir(csv_dir):
-		_filter_file(os.path.join(csv_dir, csv_file), hand, window_length, polyorder)
+		filter_file(os.path.join(csv_dir, csv_file), hand, window_length, polyorder)
