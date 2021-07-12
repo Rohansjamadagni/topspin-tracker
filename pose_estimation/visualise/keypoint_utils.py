@@ -3,36 +3,36 @@ import pandas as pd
 import numpy as np
 
 PARTS_LIST = [
-	'r_wrist', 'l_wrist',
-	'r_elbow', 'l_elbow',
+	'r_wrist', #'l_wrist',
+	'r_elbow', #'l_elbow',
 	'r_shoulder', 'l_shoulder',
-	'r_hip', 'l_hip',
-	'r_knee', 'l_knee',
-	'r_ankle', 'l_ankle',
+	#'r_hip', 'l_hip',
+	#'r_knee', 'l_knee',
+	#'r_ankle', 'l_ankle',
 ]
 
 LINES_LIST = [
     ['r_wrist', 'r_elbow'],
-    ['l_wrist', 'l_elbow'],
+    # ['l_wrist', 'l_elbow'],
     ['r_elbow', 'r_shoulder'],
-    ['l_elbow', 'l_shoulder'],
+    # ['l_elbow', 'l_shoulder'],
     ['r_shoulder', 'l_shoulder'],
-    ['r_shoulder', 'r_hip'],
-    ['l_shoulder', 'l_hip'],
-    ['r_hip', 'l_hip'],
-    ['r_hip', 'r_knee'],
-    ['l_hip', 'l_knee'],
-    ['r_knee', 'r_ankle'],
-    ['l_knee', 'l_ankle']
+    # ['r_shoulder', 'r_hip'],
+    # ['l_shoulder', 'l_hip'],
+    # ['r_hip', 'l_hip'],
+    # ['r_hip', 'r_knee'],
+    # ['l_hip', 'l_knee'],
+    # ['r_knee', 'r_ankle'],
+    # ['l_knee', 'l_ankle']
 ]
 
 COLUMN_NAMES = [
-    'R-wrist', 'L-wrist',
-    'R-elbow', 'L-elbow',
+    'R-wrist', #'L-wrist',
+    'R-elbow', #'L-elbow',
     'R-shoulder', 'L-shoulder',
-    'R-hip', 'L-hip',
-    'R-knee', 'L-knee',
-    'R-ankle', 'L-ankle',
+    # 'R-hip', 'L-hip',
+    # 'R-knee', 'L-knee',
+    # 'R-ankle', 'L-ankle',
 ]
 
 # (B, G, R) cv2 colors
@@ -82,12 +82,11 @@ class KeypointMapper:
                     setattr(self, part,
                         (np.array(self.df[f'{column}-X-Filtered']),
                         np.array(self.df[f'{column}-Y-Filtered'])))
-
         else:
             for part, column in zip(PARTS_LIST, COLUMN_NAMES):
                 setattr(self, part,
                     (np.array(self.df[f'{column}-X']),
-                    p.array(self.df[f'{column}-Y'])))
+                    np.array(self.df[f'{column}-Y'])))
 
     def get_writer_object(self, output):
         vid_fps = self.vid.get(cv2.CAP_PROP_FPS)
@@ -113,11 +112,14 @@ class KeypointMapper:
             return True, img
 
     def draw(self, img, pcolor=None, lcolor=None):
+        try:
+            self.__draw_circles(img, pcolor)
+            self.__draw_lines(img, lcolor)
+        except:
+            exit()
+
         print(f'Frame no: {self.frame_counter}')
         cv2.putText(img, f"FRAME {self.frame_counter}", (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1, COLORS['RED'], thickness=2)
-
-        self.__draw_circles(img, pcolor)
-        self.__draw_lines(img, lcolor)
 
         return img
 
