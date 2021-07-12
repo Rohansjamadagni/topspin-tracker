@@ -14,18 +14,20 @@ meta_data_ = open('ips.json', 'r')
 meta_data = json.load(meta_data_)
 meta_data = meta_data['meta_data']
 
-broker_ip = json.load(open('../ips.json', 'r'))['broker']
+broker_config = json.load(open('../ips.json', 'r'))
+broker_ip = broker_config['broker_ip']
+broker_port = broker_config['broker_port']
 
 client = mqtt.Client()
 # connection refused if fails
 try:
-    client.connect(broker_ip, 1883)
+    client.connect(broker_ip, broker_port)
 except:
     # exit if fails
     sys.exit(1)
 
 meta_data['device_connected'] = True
-client.publish("bill/connected", "Ball detector Connected!")
+client.publish("ball/connected", "Ball detector Connected!")
 
 def check_range(min_val, max_val):
     def check_fn(value):
