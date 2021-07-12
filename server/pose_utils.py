@@ -1,9 +1,14 @@
-import csv_utils as cu
 import json
 import sys
+import os
 
-csv_file = "csvs/test.csv"
+import csv_utils as cu
+from vibration_utils import VibrationCSV
+
+csv_file = f"keypoint_csvs/test.csv"
 cu.initialize_csv(csv_file)
+
+vibration_csv = VibrationCSV(filename="timestamp_csvs/test.csv")
 
 def on_connect(contents):
     print("Pose estimation camera connected")
@@ -19,7 +24,8 @@ def on_rcv_frame_count(contents):
 def on_finish(contents):
     print(f"\n{contents}")
     cu.filter_file(csv_file, hand="right",
-                window_length=13, polyorder=2)
+                window_length=5, polyorder=2)
 
 def on_vibration(contents):
-    pass
+    timestamp_list = json.loads(content)
+    vibration_csv.write_list_to_csv(timestamp_list)
