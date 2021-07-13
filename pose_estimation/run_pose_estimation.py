@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 
-import RPi.GPIO as GPIO
-from threading import Thread
-
-vib_1 = 21
-vib_2 = 20
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(vib_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(vib_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
 import argparse
 import time
 import json
@@ -108,26 +98,9 @@ except:
 client.publish('pose/connected', json.dumps("Pose estimator connected!"))
 
 TIME_THRESH = 1.
-vib_list = []
-
-def vibration_thread():
-    while True:
-        if len(vib_list) == 0:
-            if GPIO.input(vib_1) > 0:
-                t_1 = time.time()
-                vib_list.append(time.time())
-
-        if len(vib_list) == 1:
-            if GPIO.input(vib_2) > 0 or (time.time()-t_1 > TIME_THRESH):
-                vib_list.append(time.time())
-                client.publish('pose/vibration', json.dumps([vib_list]))
-                vib_list = []
 
 def main():
     frame_counter = 0
-
-    t = Thread(target=vibration_thread, args=(,))
-    t.start()
 
     while True:
         frame, body = pose.next_frame()
@@ -157,7 +130,6 @@ def main():
 
     renderer.exit()
     pose.exit()
-    t.join()
 
 if __name__ == "__main__":
     try:
