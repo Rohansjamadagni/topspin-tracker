@@ -27,5 +27,5 @@ def on_finish(contents):
                 window_length=5, polyorder=2)
 
 def on_vibration(contents):
-    timestamp_list = json.loads(content)
+    timestamp_list = json.loads(contents)
     vibration_csv.write_list_to_csv(timestamp_list)
