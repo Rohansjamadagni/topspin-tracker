@@ -7,6 +7,17 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(vib_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(vib_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+broker_config = json.load(open('../ips.json', 'r'))
+broker_ip = broker_config['broker_ip']
+broker_port = broker_config['broker_port']
+
+client = mqtt.Client()
+
+try:
+    client.connect(broker_ip, broker_port)
+except:
+    exit()
+
 def main():
     vib_list = []
 
