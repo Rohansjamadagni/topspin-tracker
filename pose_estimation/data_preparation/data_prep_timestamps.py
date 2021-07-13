@@ -5,7 +5,6 @@ import time
 import sys
 sys.path.append('..')
 
-import csv_utils as cu
 from utils import DataSplitter
 from visualise.keypoint_utils import KeypointMapper
 
