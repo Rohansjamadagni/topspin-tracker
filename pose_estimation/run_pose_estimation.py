@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import RPi.GPIO as GPIO
+from threading import Thread
 
 vib_1 = 21
 vib_2 = 20
@@ -107,24 +108,28 @@ except:
 client.publish('pose/connected', json.dumps("Pose estimator connected!"))
 
 TIME_THRESH = 1.
+vib_list = []
+
+def vibration_thread():
+    while True:
+        if len(vib_list) == 0:
+            if GPIO.input(vib_1) > 0:
+                t_1 = time.time()
+                vib_list.append(time.time())
+
+        if len(vib_list) == 1:
+            if GPIO.input(vib_2) > 0 or (time.time()-t_1 > TIME_THRESH):
+                vib_list.append(time.time())
+                client.publish('pose/vibration', json.dumps([vib_list]))
+                vib_list = []
 
 def main():
     frame_counter = 0
 
-    vib_list = []
+    t = Thread(target=vibration_thread, args=(,))
+    t.start()
 
     while True:
-        # Run blazepose on next frame
-
-        if GPIO.input(vib_1) > 0:
-            t_1 = time.time()
-            vib_list.append(t_1)
-
-        if GPIO.input(vib_2) > 0 or (time.time()-t_1 > TIME_THRESH):
-            vib_list.append(time.time())
-            client.publish('pose/vibration', json.dumps([vib_list]))
-            vib_list = []
-
         frame, body = pose.next_frame()
 
         prev_list = None
@@ -152,6 +157,7 @@ def main():
 
     renderer.exit()
     pose.exit()
+    t.join()
 
 if __name__ == "__main__":
     try:
