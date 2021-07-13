@@ -27,8 +27,8 @@ class DataSplitter:
         if stroke_name is None:
             stroke_name = 'stroke'
 
-        for idx, (start, stop) in enumerate(zip(self.ts_df['start'], self.ts_df['stop'])):
-            res = self.main_df.loc[(self.main_df['Timestamp'] >= start) & (self.main_df['Timestamp'] <= stop)]
+        for idx, (start, stop) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
+            res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
             res.to_csv(f"{csv_save_dir}/{stroke_name}_{idx}.csv")
 
             if video_save_dir is not None:

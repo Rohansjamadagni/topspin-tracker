@@ -6,7 +6,7 @@ class VibrationCSV:
         filename: str = None,
     ):
         self.filename = filename
-        self.columns = ['start', 'stop']
+        self.columns = ['left', 'right']
         self.df = pd.DataFrame(self.columns)
 
         self.df.to_csv(filename)
