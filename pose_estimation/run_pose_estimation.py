@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+import RPi.GPIO as GPIO
+
+vib_1 = 21
+vib_2 = 20
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(vib_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(vib_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
 import argparse
 import time
 import json
@@ -97,11 +106,25 @@ except:
 
 client.publish('pose/connected', json.dumps("Pose estimator connected!"))
 
+TIME_THRESH = 1.
+
 def main():
     frame_counter = 0
 
+    vib_list = []
+
     while True:
         # Run blazepose on next frame
+
+        if GPIO.input(vib_1) > 0:
+            t_1 = time.time()
+            vib_list.append(t_1)
+
+        if GPIO.input(vib_2) > 0 or (time.time()-t_1 > TIME_THRESH):
+            vib_list.append(time.time())
+            client.publish('pose/vibration', json.dumps([vib_list]))
+            vib_list = []
+
         frame, body = pose.next_frame()
 
         prev_list = None
