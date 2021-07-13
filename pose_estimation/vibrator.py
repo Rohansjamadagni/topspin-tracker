@@ -1,4 +1,7 @@
 import RPi.GPIO as GPIO
+import time
+import json
+import paho.mqtt.client as mqtt
 
 vib_1 = 21
 vib_2 = 20
@@ -18,8 +21,12 @@ try:
 except:
     exit()
 
+TIME_THRESH = 1.
+
 def main():
     vib_list = []
+
+    print("Vibrator started.")
 
     while True:
         if len(vib_list) == 0:
@@ -28,11 +35,15 @@ def main():
                 vib_list.append(time.time())
 
         if len(vib_list) == 1:
-            if GPIO.input(vib_2) > 0 or (time.time()-t_1 > TIME_THRESH):
+            if GPIO.input(vib_2) > 0 or (time.time()-vib_list[0] > TIME_THRESH):
                 print("Vib 2")
                 vib_list.append(time.time())
                 client.publish('pose/vibration', json.dumps([vib_list]))
                 vib_list = []
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Vibrator terminated.")
+        exit()
