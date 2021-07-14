@@ -4,7 +4,8 @@ ball_detection/filenames.txt
 # ignore pycache
 __pycache__
 
+*.csv
+*.mp4
+
 *csvs
 *videos
-
-*models
