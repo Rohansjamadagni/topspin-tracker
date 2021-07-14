@@ -7,14 +7,16 @@ import numpy as np
 class DataSplitter:
     def __init__(
         self,
-        video,
         full_keypoint_file,
-        timestamps_file
+        timestamps_file,
+        video=None,
     ):
-        self.vid = cv2.VideoCapture(video)
 
         self.main_df = pd.read_csv(full_keypoint_file, delimiter=',')
         self.ts_df = pd.read_csv(timestamps_file, delimiter=',')
+
+        if video is not None:
+            self.vid = cv2.VideoCapture(video)
 
     def generate_splits(
         self,
@@ -29,15 +31,38 @@ class DataSplitter:
 
         for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
             res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
-            res.to_csv(f"{csv_save_dir}/{stroke_name}_{idx}.csv")
+            res.to_csv(f"{csv_save_dir}/{stroke_name}_{idx+1}.csv")
 
             if video_save_dir is not None:
-                out = self.get_writer_object(f"{video_save_dir}/{stroke_name}_{idx}.mp4")
+                out = self.get_writer_object(f"{video_save_dir}/{stroke_name}_{idx+1}.mp4")
                 for i in res.index.tolist():
                     self.vid.set(1, i)
                     ret, frame = self.vid.read()
                     out.write(frame)
                 out.release()
+
+    def generate_range_csv(
+        self,
+        csv_save_dir: str = None
+    ):
+        assert csv_save_dir is not None
+
+        cols = ['stroke_number', 'range_start', 'range_stop']
+
+        df = pd.DataFrame(columns=cols)
+        df.to_csv(f"{csv_save_dir}/ranges.csv")
+
+        for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
+            res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
+            idxs = res.index.tolist()
+
+            df = df.append({
+                'stroke_number': idx+1,
+                'range_start': idxs[0],
+                'range_stop': idxs[-1]
+                }, ignore_index=True)
+
+        df.to_csv(f"{csv_save_dir}/ranges.csv", mode='a', header=False)
 
     def get_writer_object(self, output):
         vid_fps = self.vid.get(cv2.CAP_PROP_FPS)
