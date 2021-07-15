@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
+import signal
 import argparse
 import time
 import json
@@ -98,7 +99,7 @@ except:
 
 client.publish('pose/connected', json.dumps("Pose estimator connected!"))
 
-subprocess.Popen(["python3", "vibrator.py"])
+vib_process = subprocess.Popen(["python3", "vibrator.py"])
 
 def main():
     frame_counter = 0
@@ -137,5 +138,6 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         client.publish('pose/finished', json.dumps("Pose estimation camera has been terminated."))
-        subprocess.Popen(["pkill", "-INT", "-f", "vibrator.py"])
+        # subprocess.Popen(["pkill", "-INT", "-f", "vibrator.py"])
+        vib_process.send_signal(signal.SIGINT)
         exit()
