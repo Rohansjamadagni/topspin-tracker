@@ -130,14 +130,15 @@ def main():
 
         client.publish('pose/coords', json.dumps(csv_list))
 
-    renderer.exit()
-    pose.exit()
-
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        renderer.exit()
+        pose.exit()
+
         client.publish('pose/finished', json.dumps("Pose estimation camera has been terminated."))
         # subprocess.Popen(["pkill", "-INT", "-f", "vibrator.py"])
         vib_process.send_signal(signal.SIGINT)
+
         exit()
