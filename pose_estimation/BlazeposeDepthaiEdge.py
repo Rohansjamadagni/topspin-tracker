@@ -11,12 +11,12 @@ import sys
 from string import Template
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-POSE_DETECTION_MODEL = SCRIPT_DIR / "models/pose_detection_sh4.blob"
-LANDMARK_MODEL_FULL = SCRIPT_DIR / "models/pose_landmark_full_sh4.blob"
-LANDMARK_MODEL_LITE = SCRIPT_DIR / "models/pose_landmark_lite_sh4.blob"
-LANDMARK_MODEL_FULL_0831 = SCRIPT_DIR / "models/pose_landmark_full_0831_sh4.blob"
-DETECTION_POSTPROCESSING_MODEL = SCRIPT_DIR / "custom_models/DetectionBestCandidate_sh1.blob"
-DIVIDE_BY_255_MODEL = SCRIPT_DIR / "custom_models/DivideBy255_sh1.blob"
+POSE_DETECTION_MODEL = SCRIPT_DIR / "models/pose_detection_sh6.blob"
+LANDMARK_MODEL_FULL = SCRIPT_DIR / "models/pose_landmark_full_sh6.blob"
+LANDMARK_MODEL_LITE = SCRIPT_DIR / "models/pose_landmark_lite_sh6.blob"
+LANDMARK_MODEL_FULL_0831 = SCRIPT_DIR / "models/pose_landmark_full_0831_sh6.blob"
+DETECTION_POSTPROCESSING_MODEL = SCRIPT_DIR / "custom_models/DetectionBestCandidate_sh6.blob"
+DIVIDE_BY_255_MODEL = SCRIPT_DIR / "custom_models/DivideBy255_sh6.blob"
 
 
 def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
