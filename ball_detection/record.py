@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 from time import monotonic
+import time
 from multiprocessing import Process, Queue
 import cv2
 import depthai as dai
@@ -9,10 +10,8 @@ from datetime import datetime
 import paho.mqtt.client as mqtt
 import json
 import sys
+import pandas as pd
 
-meta_data_ = open('ips.json', 'r')
-meta_data = json.load(meta_data_)
-meta_data = meta_data['meta_data']
 
 broker_config = json.load(open('../ips.json', 'r'))
 broker_ip = broker_config['broker_ip']
@@ -26,7 +25,6 @@ except:
     # exit if fails
     sys.exit(1)
 
-meta_data['device_connected'] = True
 client.publish("ball/connected", "Ball detector Connected!")
 
 def check_range(min_val, max_val):
@@ -230,8 +228,18 @@ try:
                     del self.ts_packets[key]
 
     frame_q = Queue()
-
+    timekeeper = []
     folder_num = 0
+
+    def save_to_csv():
+        df = pd.DataFrame(data=timekeeper, columns=['frame_number', 'timestamp'] )
+        print(timekeeper)
+        df.to_csv("timestamps.csv" )
+        print(df)
+
+    def append_time_stamp(frame_number):
+        timekeeper.append([frame_number, time.time()])
+
     def store_frames(in_q):
         global folder_num
         def save_png(frames_path, name, item):
@@ -245,16 +253,20 @@ try:
         while True:
             frames_dict = in_q.get()
             if frames_dict is None:
+                save_to_csv()
                 return
+            append_time_stamp(folder_num)
             frames_path = dest / Path(str(folder_num))
             folder_num = folder_num + 1
             frames_path.mkdir(parents=False, exist_ok=False)
-
+            
             for stream_name, item in frames_dict.items():
                 if stream_name == "depth": save_depth(frames_path, stream_name, item)
                 elif stream_name == "color": save_jpeg(frames_path, stream_name, item)
                 elif args.encode: save_jpeg(frames_path, stream_name, item)
                 else: save_png(frames_path, stream_name, item)
+    
+
 
     store_p = Process(target=store_frames, args=(frame_q, ))
     store_p.start()
@@ -279,7 +291,6 @@ try:
 
         start_ts = monotonic()
         # set flag for record
-        meta_data['device_status']['record']['flag'] = True
 
         while True:
             for queueName in PairingSystem.seq_streams + PairingSystem.ts_streams:
