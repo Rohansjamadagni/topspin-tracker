@@ -1,7 +1,7 @@
 import os
 import subprocess
 import json
-
+import sys
 import paho.mqtt.client as mqtt
 
 import pose_utils as pu
@@ -29,7 +29,6 @@ def on_connect_ball(client, userdata, detect_flags, rc):
     client.subscribe("ball/#")
     print("Connected to the ball topic!")
     print("Attempting to connect to ball camera")
-    au.ansible()
 
 def on_connect_pose(client, userdata, detect_flags, rc):
     client.subscribe("pose/#")
@@ -73,13 +72,20 @@ def on_message_ball(client, ud, msg):
         pack(contents)
     else:
         print('Wrong ball topic')
-
+    
 while True:
     # ball.on_connect = on_connect_ball
     # ball.on_message = on_message_ball
+    try:
+        pose.on_connect = on_connect_pose
+        pose.on_message = on_message_pose
 
-    pose.on_connect = on_connect_pose
-    pose.on_message = on_message_pose
-
-    ball.loop_start()
-    pose.loop_start()
+        ball.loop_start()
+        pose.loop_start()
+    except KeyboardInterrupt:
+        print("Press r top stop recording, Press q to quit:")
+        inp = input()
+        if(inp == 'r'):
+            au.stat_replay()
+        else:
+            sys.exit(0)

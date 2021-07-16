@@ -6,7 +6,6 @@ from multiprocessing import Process, Queue
 import cv2
 import depthai as dai
 import numpy as np
-import pandas
 import time
 import pandas as pd
 import paho.mqtt.client as mqtt
@@ -254,7 +253,7 @@ try:
 
                         append_data(
                             stroke_number=stroke+1,
-                            frame_number=frame_number,
+                            frame_number= frame_folder,
                             x=int(detection.spatialCoordinates.x),
                             y=int(detection.spatialCoordinates.y),
                             z=int(detection.spatialCoordinates.z),
@@ -262,7 +261,7 @@ try:
                             )
 
                 progress = frame_folder/len(frames_sorted[stroke])*100
-                if int(frame_folder) % int(0.05*len(frames_sorted[stroke]) == 0:
+                if int(frame_folder) % int(0.05*len(frames_sorted[stroke]) == 0):
                     client.publish("ball/progress/replay", f"Stroke number : {stroke}, {int(progress)}%")
                 if args.show:
                     cv2.imshow("rgb", rgbFrame)
@@ -276,3 +275,4 @@ try:
 except Exception as e:
     client.publish("ball/error", e)
     print(e)
+

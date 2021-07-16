@@ -1,18 +1,23 @@
 ---
-- hosts: cameras
+- hosts: all
   gather_facts: no
 
   tasks:
-    - name: Start recording
+    - name: Start recording on ball_detector
       shell: nohup python3 record.py > record.log &
+      when: inventory_hostname in groups['ball_detector']
       args:
         chdir: $HOME/Documents/topspin-tracker
-      tags: start_record
     
-    - name: Start Processing
-      shell: nohup python3 replay.py > replay.log &
+    - name: Start pose_estimation
+      shell: nohup python3 run_pose_estimation.py > record.log &
+      when: inventory_hostname in groups['pose_estimator']
       args:
-        chdir: $HOME/Documents/topspin-tracker 
-      tags: start_replay
+        chdir: $HOME/Documents/topspin-tracker
 
+    - name: Start vibrator
+      shell: nohup python3 vibrator.py > vibrator.log &
+      when: inventory_hostname in groups['pose_estimator']
+      args:
+        chdir: $HOME/Documents/topspin-tracker
 
