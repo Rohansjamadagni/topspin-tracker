@@ -324,5 +324,5 @@ try:
     frame_q.put(None)
     store_p.join()
 except Exception as e:
-    client.publish("topspin/test", str(e))
+    client.publish("ball/error", str(e))
     print(e)

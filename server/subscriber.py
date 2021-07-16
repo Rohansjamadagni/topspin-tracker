@@ -1,4 +1,3 @@
-# subscriber
 import os
 import subprocess
 import json
@@ -63,9 +62,13 @@ def on_message_ball(client, ud, msg):
         bu.on_connect(contents)
     elif msg.topic == 'ball/progress/record':
         bu.on_record(contents)
+    elif msg.topic == 'ball/record/finished':
+        bu.on_finish_record(contents)
     elif msg.topic == 'ball/progress/replay':
         bu.on_replay(contents)
     # receive data from ansible to start replay
+    elif msg.topic == 'ball/replay/finished':
+        bu.on_finish_replay(contents)
     elif msg.topic == 'ball/error':
         pack(contents)
     else:

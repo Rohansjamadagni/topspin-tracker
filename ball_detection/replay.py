@@ -14,16 +14,15 @@ import json
 import sys
 
 data_to_save = {
-    'timestamp' : [],
+    'stroke_number': [],
+    'frame_number': [],
     'x' : [],
     'y' : [],
     'z' : [],
-    'confidence' : []
+    'confidence' : [],
 }
 
-meta_data_ = open('ips.json', 'r')
-meta_data = json.load(meta_data_)
-meta_data = meta_data['meta_data']
+# meta_data_ = open('../ips.json', 'r')
 
 broker_config = json.load(open('../ips.json', 'r'))
 broker_ip = broker_config['broker_ip']
@@ -37,14 +36,21 @@ except:
     # exit if fails
     sys.exit(1)
 
-meta_data['device_connected'] = True
-client.publish("topspin/test", json.dumps(meta_data))
-
 def get_path_name():
 	f = open('filenames.txt', 'r')
 	data_ = f.readlines()[-1]
 	data_ = data_[0:-1] # removing newline char at the end
 	return str(data_)
+
+def find_frames_to_process():
+    df = pd.read_csv('timestamps.csv')
+    recorded_ = pd.read_csv('sample.csv')
+    final_ranges = []
+    for _, row in recorded_.iterrows():
+        start_range, end_range = row['range_start'], row['range_stop']
+        new_df = df[df['timestamp'].between(start_range, end_range, inclusive=True)]
+        final_ranges.append(list(new_df['frame_number']))
+    return final_ranges
 
 parser = argparse.ArgumentParser()
 
@@ -52,22 +58,14 @@ try:
     labelMap = ['ball']
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-co', '--csv_output', help="Enter where to save the csv file along with file name",default= get_path_name() + '/result.csv')
+    parser.add_argument('-co', '--csv_output', help="Enter where to save the csv file along with file name",default='result.csv')
     parser.add_argument('-p', '--path', default=get_path_name(), type=str, help="Path where to store the captured data")
     parser.add_argument('-s', '--show', default=False, type=bool, help="Show opencv windows")
     args = parser.parse_args()
 
     # Get the stored frames path
     dest = Path(args.path).resolve().absolute()
-    print(str(dest))
-    frames = os.listdir(str(dest))
-    frames_sorted = []
-    for i in frames:
-        if os.path.isdir(str(dest)+'/'+i):
-            frames_sorted.append(int(i))
-
-    frames_sorted.sort()
-
+    frames_sorted = find_frames_to_process()
     pipeline = dai.Pipeline()
 
     left_in = pipeline.createXLinkIn()
@@ -101,7 +99,7 @@ try:
     stereo.syncedLeft.link(left_s_out.input)
 
     spatialDetectionNetwork = pipeline.createYoloSpatialDetectionNetwork()
-    spatialDetectionNetwork.setBlobPath("/home/jeffrey/Documents/topspin/models/ball.blob")
+    spatialDetectionNetwork.setBlobPath("./models/ball.blob")
     spatialDetectionNetwork.setConfidenceThreshold(0.5)
     spatialDetectionNetwork.input.setBlocking(False)
     spatialDetectionNetwork.setBoundingBoxScaleFactor(0.3)
@@ -136,17 +134,19 @@ try:
     def to_planar(arr, shape):
         return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
-    def append_data(x, y, z, confidence):
+    def append_data(stroke_number, frame_number, x, y, z, confidence):
         global data_to_save
-        current_time = time.time()
-        data_to_save['timestamp'].append(current_time)
+        data_to_save['stroke_number'].append(stroke_number)
+        data_to_save['frame_number'].append(frame_number)
         data_to_save['x'].append(x)
         data_to_save['y'].append(y)
         data_to_save['z'].append(z)
         data_to_save['confidence'].append(confidence)
 
     def save_data():
+        append_data(1,2,3,4,5,6)
         global data_to_save
+        
         data_ = pd.DataFrame(data_to_save)
         data_.to_csv(args.csv_output)
 
@@ -167,116 +167,112 @@ try:
         qRgbOut = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
         color = (255, 0, 0)
-        meta_data['device_status']['replay']['flag'] = True
         # Read rgb/mono frames, send them to device and wait for the spatial object detection results
-        for frame_folder in frames_sorted:
-            files = os.listdir(str((Path(args.path) / str(frame_folder)).resolve().absolute()))
-            # If there is no rgb/left/right frame in the folder, skip this "frame"
-            if [f.startswith("color") or f.startswith("left") or f.startswith("right") for f in files].count(True) < 3: continue
+        for stroke in range(len(frames_sorted)):
+            for frame_folder in frames_sorted[stroke]:
+                files = os.listdir(str((Path(args.path) / str(frame_folder)).resolve().absolute()))
+                # If there is no rgb/left/right frame in the folder, skip this "frame"
+                if [f.startswith("color") or f.startswith("left") or f.startswith("right") for f in files].count(True) < 3: continue
 
-            # Read the images from the FS
-            images = [cv2.imread(str((Path(args.path) / str(frame_folder) / file).resolve().absolute()), cv2.IMREAD_GRAYSCALE if file.startswith("right") or file.startswith("left") else None) for file in files]
-            for i in range(len(files)):
-                right = files[i].startswith("right")
-                if right or files[i].startswith("left"):
-                    h, w = images[i].shape
-                    frame = dai.ImgFrame()
-                    frame.setData(cv2.flip(images[i], 1)) # Flip the rectified frame
-                    frame.setType(dai.RawImgFrame.Type.RAW8)
-                    frame.setWidth(w)
-                    frame.setHeight(h)
-                    frame.setInstanceNum((2 if right else 1))
-                    if right: qRight.send(frame)
-                    else: qLeft.send(frame)
+                # Read the images from the FS
+                images = [cv2.imread(str((Path(args.path) / str(frame_folder) / file).resolve().absolute()), cv2.IMREAD_GRAYSCALE if file.startswith("right") or file.startswith("left") else None) for file in files]
+                for i in range(len(files)):
+                    right = files[i].startswith("right")
+                    if right or files[i].startswith("left"):
+                        h, w = images[i].shape
+                        frame = dai.ImgFrame()
+                        frame.setData(cv2.flip(images[i], 1)) # Flip the rectified frame
+                        frame.setType(dai.RawImgFrame.Type.RAW8)
+                        frame.setWidth(w)
+                        frame.setHeight(h)
+                        frame.setInstanceNum((2 if right else 1))
+                        if right: qRight.send(frame)
+                        else: qLeft.send(frame)
 
-                # elif files[i].startswith("disparity"):
-                #     cv2.imshow("original disparity", images[i])
-                elif files[i].startswith("color"):
-                    preview = images[i][0:1080, 420:1500] # Crop before sending
-                    frame = dai.ImgFrame()
-                    frame.setType(dai.RawImgFrame.Type.BGR888p)
-                    frame.setData(to_planar(preview, (416, 416)))
-                    frame.setWidth(416)
-                    frame.setHeight(416)
-                    frame.setInstanceNum(0)
-                    qRgbIn.send(frame)
-                    #cv2.imshow("preview", preview)
+                    # elif files[i].startswith("disparity"):
+                    #     cv2.imshow("original disparity", images[i])
+                    elif files[i].startswith("color"):
+                        preview = images[i][0:1080, 420:1500] # Crop before sending
+                        frame = dai.ImgFrame()
+                        frame.setType(dai.RawImgFrame.Type.BGR888p)
+                        frame.setData(to_planar(preview, (416, 416)))
+                        frame.setWidth(416)
+                        frame.setHeight(416)
+                        frame.setInstanceNum(0)
+                        qRgbIn.send(frame)
+                        #cv2.imshow("preview", preview)
 
-            inRgb = qRgbOut.get()
-            rgbFrame = inRgb.getCvFrame().reshape((416, 416, 3))
+                inRgb = qRgbOut.get()
+                rgbFrame = inRgb.getCvFrame().reshape((416, 416, 3))
 
-            if args.show:
-                cv2.imshow("left", qLeftS.get().getCvFrame())
-                cv2.imshow("right", qRightS.get().getCvFrame())
+                if args.show:
+                    cv2.imshow("left", qLeftS.get().getCvFrame())
+                    cv2.imshow("right", qRightS.get().getCvFrame())
 
-            depthFrame = qDepth.get().getFrame()
-            depthFrameColor = cv2.normalize(depthFrame, None, 255, 0, cv2.NORM_INF, cv2.CV_8UC1)
-            depthFrameColor = cv2.equalizeHist(depthFrameColor)
-            depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
+                depthFrame = qDepth.get().getFrame()
+                depthFrameColor = cv2.normalize(depthFrame, None, 255, 0, cv2.NORM_INF, cv2.CV_8UC1)
+                depthFrameColor = cv2.equalizeHist(depthFrameColor)
+                depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
 
-            height = inRgb.getHeight()
-            width = inRgb.getWidth()
+                height = inRgb.getHeight()
+                width = inRgb.getWidth()
 
-            inDet = qDet.tryGet()
-            if inDet is not None:
-                if len(inDet.detections) != 0:
-                    # Display boundingbox mappings on the depth frame
-                    bbMapping = qBb.get()
-                    roiDatas = bbMapping.getConfigData()
-                    for roiData in roiDatas:
-                        roi = roiData.roi
-                        roi = roi.denormalize(depthFrameColor.shape[1], depthFrameColor.shape[0])
-                        topLeft = roi.topLeft()
-                        bottomRight = roi.bottomRight()
-                        xmin = int(topLeft.x)
-                        ymin = int(topLeft.y)
-                        xmax = int(bottomRight.x)
-                        ymax = int(bottomRight.y)
-                        cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), (0,255,0), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX)
+                inDet = qDet.tryGet()
+                if inDet is not None:
+                    if len(inDet.detections) != 0:
+                        # Display boundingbox mappings on the depth frame
+                        bbMapping = qBb.get()
+                        roiDatas = bbMapping.getConfigData()
+                        for roiData in roiDatas:
+                            roi = roiData.roi
+                            roi = roi.denormalize(depthFrameColor.shape[1], depthFrameColor.shape[0])
+                            topLeft = roi.topLeft()
+                            bottomRight = roi.bottomRight()
+                            xmin = int(topLeft.x)
+                            ymin = int(topLeft.y)
+                            xmax = int(bottomRight.x)
+                            ymax = int(bottomRight.y)
+                            cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), (0,255,0), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX)
 
-                # Display (spatial) object detections on the color frame
-                for detection in inDet.detections:
-                    # Denormalize bounding box
-                    x1 = int(detection.xmin * 416)
-                    x2 = int(detection.xmax * 416)
-                    y1 = int(detection.ymin * 416)
-                    y2 = int(detection.ymax * 416)
-                    try:
-                        label = labelMap[detection.label]
-                    except:
-                        label = detection.label
-                    cv2.putText(rgbFrame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-                    cv2.putText(rgbFrame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-                    cv2.putText(rgbFrame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-                    cv2.putText(rgbFrame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-                    cv2.putText(rgbFrame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-                    cv2.rectangle(rgbFrame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
+                    # Display (spatial) object detections on the color frame
+                    for detection in inDet.detections:
+                        # Denormalize bounding box
+                        x1 = int(detection.xmin * 416)
+                        x2 = int(detection.xmax * 416)
+                        y1 = int(detection.ymin * 416)
+                        y2 = int(detection.ymax * 416)
+                        try:
+                            label = labelMap[detection.label]
+                        except:
+                            label = detection.label
+                        cv2.putText(rgbFrame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                        cv2.putText(rgbFrame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                        cv2.putText(rgbFrame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                        cv2.putText(rgbFrame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                        cv2.putText(rgbFrame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                        cv2.rectangle(rgbFrame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
 
-                    append_data(
-                        int(detection.spatialCoordinates.x),
-                        int(detection.spatialCoordinates.y),
-                        int(detection.spatialCoordinates.z),
-                        detection.confidence
-                        )
+                        append_data(
+                            stroke_number=stroke+1,
+                            frame_number=frame_number,
+                            x=int(detection.spatialCoordinates.x),
+                            y=int(detection.spatialCoordinates.y),
+                            z=int(detection.spatialCoordinates.z),
+                            confidence=detection.confidence,
+                            )
 
-            progress = frame_folder/frames_sorted[-1]*100
-            # publish progress every 5%
-            if int(frame_folder) % int(0.05*frames_sorted[-1]) == 0:
-                meta_data['device_status']['replay']['progress'] = int(progress)
-                client.publish("topspin/test", json.dumps(meta_data))
-            if args.show:
-                cv2.imshow("rgb", rgbFrame)
-                cv2.imshow("depth", depthFrameColor)
+                progress = frame_folder/len(frames_sorted[stroke])*100
+                if int(frame_folder) % int(0.05*len(frames_sorted[stroke]) == 0:
+                    client.publish("ball/progress/replay", f"Stroke number : {stroke}, {int(progress)}%")
+                if args.show:
+                    cv2.imshow("rgb", rgbFrame)
+                    cv2.imshow("depth", depthFrameColor)
 
-            if cv2.waitKey(1) == ord('q'):
-                break
+                if cv2.waitKey(1) == ord('q'):
+                    break
         save_data()
-        meta_data['device_status']['replay']['progress'] = 100
-        meta_data['device_status']['replay']['flag'] = False
-        meta_data['device_status']['replay']['completed'] = True
-        client.publish("topspin/test", json.dumps(meta_data))
+        client.publish("ball/replay/finished", "Finished Replaying.")
         sys.exit(0)
 except Exception as e:
-    meta_data['failure']['status'] = True
-    meta_data['failure']['error'] = str(e)
-    client.publish("topspin/test", json.dumps(meta_data))
+    client.publish("ball/error", e)
+    print(e)
