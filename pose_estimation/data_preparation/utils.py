@@ -18,7 +18,7 @@ class DataSplitter:
         if video is not None:
             self.vid = cv2.VideoCapture(video)
 
-    def generate_splits(
+    def generate_split_csvs(
         self,
         csv_save_dir: str = None,
         video_save_dir: str = None,
@@ -40,6 +40,24 @@ class DataSplitter:
                     ret, frame = self.vid.read()
                     out.write(frame)
                 out.release()
+
+    def get_splits_list(self, max_len: int = 40, padding: bool = True) -> np.ndarray:
+        splits = []
+
+        for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
+            res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
+
+            split = res.iloc[:, -8:].values.tolist()
+
+            if len(split) > max_len:
+                split = split[:max_len]
+            elif len(split) < max_len and padding == True:
+                for _ in range(len(split), max_len):
+                    split.append([0 for _ in range(0, 8)])
+
+            splits.append(split)
+
+        return np.asarray(splits, dtype=object)
 
     def generate_range_csv(
         self,
