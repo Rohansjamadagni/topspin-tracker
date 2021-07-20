@@ -45,7 +45,7 @@ def main():
 
     splitter = DataSplitter(
                     video=args.video,
-                    full_keypoint_file=args.csv_file,
+                    main_csv_file=args.csv_file,
                     timestamps_file=args.timestamps_file)
 
     splitter.generate_splits(

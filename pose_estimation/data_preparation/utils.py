@@ -7,12 +7,12 @@ import numpy as np
 class DataSplitter:
     def __init__(
         self,
-        full_keypoint_file,
+        main_csv_file,
         timestamps_file,
         video=None,
     ):
 
-        self.main_df = pd.read_csv(full_keypoint_file, delimiter=',')
+        self.main_df = pd.read_csv(main_csv_file, delimiter=',')
         self.ts_df = pd.read_csv(timestamps_file, delimiter=',')
 
         if video is not None:
@@ -41,19 +41,32 @@ class DataSplitter:
                     out.write(frame)
                 out.release()
 
-    def get_splits_list(self, max_len: int = 40, padding: bool = True) -> np.ndarray:
+    def get_splits_list(
+                self,
+                indices: list,
+                max_len: int = 40,
+                padding: bool = True) -> np.ndarray:
+
+        '''
+        indices: list
+            indices of columns to get from the csv file
+        max_len: int
+            max permittable length of a single split
+        padding: bool
+            if true, will zero-pad each split to the max len provided
+        '''
         splits = []
 
         for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
             res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
 
-            split = res.iloc[:, -8:].values.tolist()
+            split = res.iloc[:, indices].values.tolist()
 
             if len(split) > max_len:
                 split = split[:max_len]
             elif len(split) < max_len and padding == True:
                 for _ in range(len(split), max_len):
-                    split.append([0 for _ in range(0, 8)])
+                    split.append([0 for _ in range(0, len(indices))])
 
             splits.append(split)
 
