@@ -47,17 +47,23 @@ class DataSplitter:
                 max_len: int = 40,
                 padding: bool = True) -> np.ndarray:
 
-        '''
-        Parameters:
-            indices: list
-                indices of columns to get from the csv file
-            max_len: int
-                max permittable length of a single split
-            padding: bool
-                if true, will zero-pad each split to the max len provided
-        Returns:
-            numpy.ndarray containing all splits
-        '''
+        """
+        Generates splits based on timestamps and returns an array with all the splits from the main_csv_file
+
+        Parameters
+        ----------
+        indices: list
+            indices of columns to get from the csv file
+        max_len: int
+            max permittable length of a single split
+        padding: bool
+            if true, will zero-pad each split to the max len provided
+
+        Returns
+        -------
+        numpy.ndarray containing all splits
+        """
+        
         splits = []
 
         for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
