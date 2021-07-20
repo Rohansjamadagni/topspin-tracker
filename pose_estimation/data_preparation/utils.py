@@ -48,12 +48,15 @@ class DataSplitter:
                 padding: bool = True) -> np.ndarray:
 
         '''
-        indices: list
-            indices of columns to get from the csv file
-        max_len: int
-            max permittable length of a single split
-        padding: bool
-            if true, will zero-pad each split to the max len provided
+        Parameters:
+            indices: list
+                indices of columns to get from the csv file
+            max_len: int
+                max permittable length of a single split
+            padding: bool
+                if true, will zero-pad each split to the max len provided
+        Returns:
+            numpy.ndarray containing all splits
         '''
         splits = []
 

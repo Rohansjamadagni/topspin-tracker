@@ -22,15 +22,21 @@ def ball_process(all_rallies):
 
 def main():
     pose_splitter = DataSplitter(
-        full_keypoint_file="keypoint_csvs/test.csv",
+        main_csv_file="keypoint_csvs/test.csv",
         timestamps_file="timestamp_csvs/test.csv")
 
     ball_splitter = DataSplitter(
-        full_keypoint_file="ball_csvs/test.csv",  # placeholder
+        main_csv_file="ball_csvs/test.csv",  # placeholder
         timestamps_file="timestamp_csvs/test.csv")
 
-    all_strokes = pose_splitter.get_splits_list()  # gives numpy array
-    all_rallies = ball_splitter.get_splits_list(padding=False)
+    all_strokes = pose_splitter.get_splits_list(   # returns numpy array
+                                    indices=list(range(-1, -9, -1)),
+                                    max_len=40,
+                                    padding=True)
+
+    all_rallies = ball_splitter.get_splits_list(
+                                    indices=list(range(0, 7)),
+                                    padding=False)
 
     # start pose estimation post process thread
     # ... (pose_process, args=(...))
