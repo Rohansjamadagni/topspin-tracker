@@ -63,7 +63,7 @@ class DataSplitter:
         -------
         numpy.ndarray containing all splits
         """
-        
+
         splits = []
 
         for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
@@ -74,8 +74,11 @@ class DataSplitter:
             if len(split) > max_len:
                 split = split[:max_len]
             elif len(split) < max_len and padding == True:
-                for _ in range(len(split), max_len):
-                    split.append([0 for _ in range(0, len(indices))])
+                split_len = len(split)
+                indices_len = len(indices)
+
+                for _ in range(split_len, max_len):
+                    split.append([0 for _ in range(0, indices_len)])
 
             splits.append(split)
 
