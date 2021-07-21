@@ -30,13 +30,9 @@ class CSV:
 	save(mode:str = 'a', header: bool = False, index: bool = True):
 		saves the dataframe to the csv file named ```filename```
 
-	filter_columns(window_length: int = 13, polyorder: int = 2, columns: list = None):
+	filter_columns(window_length: int = 13, polyorder: int = 2, columns: list = None, overwrite: bool = False):
 		- filters the specified columns with a savitzy-golay filter
-		- suffixes column names with '-Filtered'
-
-	filter_columns_and_overwrite(window_length: int = 13, polyorder: int = 2, columns: list = None):
-		- same as ```filter_columns``` except that suffixed columns are not added
-		- columns are overwritten with the new values
+		- suffixes column names with '-Filtered' if overwrite is False, else columns are overwritten with the new values
 
 	destructor:
 		saves the dataframe to the csv file named ```filename``` in case user has not called the ```save``` function
@@ -62,30 +58,17 @@ class CSV:
 		self.df.to_csv(self.filename, mode=mode, header=header, index=index)
 
 	def filter_columns(self, window_length: int = 13,
-		polyorder: int = 2, columns: list = None):
+		polyorder: int = 2, columns: list = None, overwrite: bool = False):
 
 		if columns is None:
 			columns = self.columns
 
-		for col in self.df.columns:
-			if col in columns:
-				vals = self.df[col]
-				self.df[f'{col}-Filtered'] \
-				= savgol_filter(vals, window_length,
-							polyorder, mode='nearest')
-
-		self.save('w', True, False)
-
-	def filter_columns_and_overwrite(self, window_length: int = 13,
-		polyorder: int = 2, columns: list = None):
-
-		if columns is None:
-			columns = self.columns
+		suffix = '' if overwrite else '-Filtered'
 
 		for col in self.df.columns:
 			if col in columns:
 				vals = self.df[col]
-				self.df[col] \
+				self.df[f'{col}{suffix}'] \
 				= savgol_filter(vals, window_length,
 							polyorder, mode='nearest')
 
