@@ -3,7 +3,7 @@ import sys
 import os
 
 import csv_utils as cu
-import new_csv_utils as ncu
+from new_csv_utils import CSV
 # from vibration_utils import VibrationCSV
 
 # keypoints = cu.CSV(filename="keypoint_csvs/test.csv", columns=)
