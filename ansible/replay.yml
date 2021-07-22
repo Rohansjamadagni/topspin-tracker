@@ -6,13 +6,11 @@
     - name: kill all the processes
       shell: pkill -2 -f "record.py" & pkill -2 -f "vibrator.py" & pkill -2 -f "run_pose_estimation.py" 
 
-    - name: copy vibrator csv from pose_estimator to ball_detector
-      when: inventory_hostname in groups['pose_estimator']
+    - name: copy vibrator csv from server to ball_detector
+      when: inventory_hostname in groups['ball_detector']
       synchronize:
-        src: ~/Documents/topspin-tracker/vibrator.csv 
+        src: ../server/vibrator.csv 
         dest: ~/Documents/topspin-tracker
-        mode: pull
-      delegate_to: "{{groups['ball_detector'][0]}}"
       
     - name: Start replay on ball_detector
       when: inventory_hostname in groups['ball_detector']
