@@ -50,15 +50,9 @@ args = parser.parse_args()
 
 def _get_list(landmarks):
     csv_list = []
-    parts_list = ['nose',
-               'left_eye', 'right_eye',
-               'left_ear', 'right_ear',
-               'left_shoulder', 'right_shoulder',
+    parts_list = ['left_shoulder', 'right_shoulder',
                'left_elbow', 'right_elbow',
-               'left_wrist', 'right_wrist',
-               'left_hip', 'right_hip',
-               'left_knee', 'right_knee',
-               'left_ankle', 'right_ankle']
+               'left_wrist', 'right_wrist']
 
     for part in parts_list:
         coords = landmarks[KEYPOINT_DICT[part]]
@@ -99,12 +93,19 @@ except:
 
 client.publish('pose/connected', json.dumps("Pose estimator connected!"))
 
-vib_process = subprocess.Popen(["python3", "vibrator.py"])
+vib_process = subprocess.Popen(["python3", "vibrator.py"],
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
 
 def main():
     frame_counter = 0
 
     while True:
+        if vib_process.poll() is not None:
+            res = vib_process.communicate()
+            client.publish('pose/error', json.dumps(res[1].decode()))
+            break
+
         frame, body = pose.next_frame()
 
         prev_list = None
@@ -138,7 +139,6 @@ if __name__ == "__main__":
         pose.exit()
 
         client.publish('pose/finished', json.dumps("Pose estimation camera has been terminated."))
-        # subprocess.Popen(["pkill", "-INT", "-f", "vibrator.py"])
         vib_process.send_signal(signal.SIGINT)
 
         exit()

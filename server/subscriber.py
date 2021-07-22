@@ -19,7 +19,7 @@ ball.connect(broker_ip, broker_port)
 pose.connect(broker_ip, broker_port)
 
 def pack(error=None):
-    if not error:
+    if error is not None:
         print(error)
     print("PACK BRO")
     au.ansible_destroy()
@@ -72,7 +72,7 @@ def on_message_ball(client, ud, msg):
         pack(contents)
     else:
         print('Wrong ball topic')
-    
+
 while True:
     # ball.on_connect = on_connect_ball
     # ball.on_message = on_message_ball
@@ -80,12 +80,12 @@ while True:
         pose.on_connect = on_connect_pose
         pose.on_message = on_message_pose
 
-        ball.loop_start()
+        # ball.loop_start()
         pose.loop_start()
     except KeyboardInterrupt:
-        print("Press r top stop recording, Press q to quit:")
-        inp = input()
-        if(inp == 'r'):
-            au.stat_replay()
-        else:
-            sys.exit(0)
+        # print("Press r top stop recording, Press q to quit:")
+        # inp = input()
+        # if(inp == 'r'):
+        #     au.stat_replay()
+        # else:
+        exit()
