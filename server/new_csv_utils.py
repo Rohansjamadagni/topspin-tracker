@@ -52,8 +52,8 @@ class CSV:
 
 		self.df = self.df.append(new_df, ignore_index=True)
 
-	def save(self, mode:str = 'a',
-		header: bool = False, index: bool = True):
+	def save(self, mode:str = 'w',
+		header: bool = True, index: bool = True):
 
 		self.df.to_csv(self.filename, mode=mode, header=header, index=index)
 
@@ -72,8 +72,5 @@ class CSV:
 				= savgol_filter(vals, window_length,
 							polyorder, mode='nearest')
 
-		self.save('w', True, False)
-
 	def __del__(self):
-		print('--- Call the save function using the CSV object for a safer implementation ---')
 		self.save()
