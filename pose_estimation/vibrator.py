@@ -25,7 +25,7 @@ try:
 except:
     exit()
 
-TIME_THRESH = 1.
+TIME_THRESH = 1.5
 
 def main():
     vib_list = []
