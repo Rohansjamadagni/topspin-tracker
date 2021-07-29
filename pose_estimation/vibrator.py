@@ -16,14 +16,12 @@ broker_port = broker_config['broker_port']
 
 client = mqtt.Client()
 
-def save_data():
-    #TODO: Write code here to save csv
-    sys.exit(0)
-
 try:
     client.connect(broker_ip, broker_port)
 except:
     exit()
+
+client.publish('vibration/connected', json.dumps("Vibration sensors connected"))
 
 TIME_THRESH = 1.5
 
@@ -38,12 +36,12 @@ def main():
                 if GPIO.input(vib_1) > 0:
                     print("Vib 1")
                     vib_list.append(time.time())
-    
+
             if len(vib_list) == 1:
                 if GPIO.input(vib_2) > 0 or (time.time()-vib_list[0] > TIME_THRESH):
                     print("Vib 2")
                     vib_list.append(time.time())
-                    client.publish('pose/vibration', json.dumps([vib_list]))
+                    client.publish('vibration/pitch', json.dumps([vib_list]))
                     vib_list = []
         except KeyboardInterrupt:
             save_data()
@@ -54,4 +52,8 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("Vibrator terminated.")
+        client.publish('vibration/finished', json.dumps("Vibration sensors terminated"))
+        exit()
+    except Exception as e:
+        client.publish(f'vibration/error', json.dumps(e))
         exit()

@@ -45,6 +45,8 @@ parser.add_argument("-o","--output",
                     help="Path to output video file")
 parser.add_argument("-co","--csv-output",
                     help="Path to output csv file")
+parser.add_argument("--cam",
+                    help="Camera number")
 
 args = parser.parse_args()
 
@@ -86,32 +88,27 @@ broker_port = broker_config['broker_port']
 
 client = mqtt.Client()
 
+camera = args.cam
+
 try:
     client.connect(broker_ip, broker_port)
 except:
     exit()
 
-client.publish('pose/connected', json.dumps("Pose estimator connected!"))
-
-vib_process = subprocess.Popen(["python3", "vibrator.py"],
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+client.publish(f'pose_{camera}/connected', json.dumps(f"Pose estimator {camera} connected!"))
 
 def main():
-    frame_counter = 0
+    if camera == 1:
+        frame_counter = 0
 
     while True:
-        if vib_process.poll() is not None:
-            res = vib_process.communicate()
-            client.publish('pose/error', json.dumps(res[1].decode()))
-            break
-
         frame, body = pose.next_frame()
 
         prev_list = None
 
-        client.publish('pose/progress', json.dumps(frame_counter+1))
-        frame_counter += 1
+        if camera == 1:
+            client.publish(f'pose_{camera}/progress', json.dumps(frame_counter+1))
+            frame_counter += 1
 
         if frame is None: break
 
@@ -129,7 +126,7 @@ def main():
         else:
             continue
 
-        client.publish('pose/coords', json.dumps(csv_list))
+        client.publish(f'pose_{camera}/coords', json.dumps(csv_list))
 
 if __name__ == "__main__":
     try:
@@ -138,7 +135,10 @@ if __name__ == "__main__":
         renderer.exit()
         pose.exit()
 
-        client.publish('pose/finished', json.dumps("Pose estimation camera has been terminated."))
+        client.publish(f'pose_{camera}/finished', json.dumps(f"Pose estimation camera {camera} has been terminated."))
         vib_process.send_signal(signal.SIGINT)
 
+        exit()
+    except Exception as e:
+        client.publish(f'pose_{camera}/error', json.dumps(e))
         exit()
