@@ -2,8 +2,6 @@ import json
 import sys
 import os
 
-from csv_utils import CSV
-
 def _get_columns():
 	column_names = ['L-shoulder', 'R-shoulder',
 		   'L-elbow', 'R-elbow',
@@ -20,8 +18,6 @@ def _get_columns():
 	columns.append('Timestamp')
 
 	return columns
-
-kpt_cols = _get_columns()
 
 def on_connect(contents):
     print(contents)

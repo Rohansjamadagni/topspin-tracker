@@ -66,5 +66,5 @@ class CSV:
                 = savgol_filter(vals, window_length,
                             polyorder, mode='nearest')
 
-    def __del__(self):
-        self.save('a')
+    # def __del__(self):
+    #     self.save('a')

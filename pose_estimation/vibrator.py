@@ -27,25 +27,27 @@ TIME_THRESH = 1.5
 
 def main():
     vib_list = []
+    stroke_number = 1
 
     print("Vibrator started.")
 
     while True:
-        try:
-            if len(vib_list) == 0:
-                if GPIO.input(vib_1) > 0:
-                    print("Vib 1")
-                    vib_list.append(time.time())
+        if len(vib_list) == 0:
+            if GPIO.input(vib_1) > 0:
+                print("Vib 1")
+                vib_list.append(time.time())
 
-            if len(vib_list) == 1:
-                if GPIO.input(vib_2) > 0 or (time.time()-vib_list[0] > TIME_THRESH):
-                    print("Vib 2")
-                    vib_list.append(time.time())
-                    client.publish('vibration/pitch', json.dumps([vib_list]))
-                    vib_list = []
-        except KeyboardInterrupt:
-            save_data()
-            sys.exit(0)
+        if len(vib_list) == 1:
+            if GPIO.input(vib_2) > 0 or (time.time()-vib_list[0] > TIME_THRESH):
+                print("Vib 2")
+                vib_list.append(time.time())
+                client.publish('vibration/pitch', json.dumps([vib_list]))
+
+                print(f"Duration of stroke: {vib_list[1] - vib_list[0]}")
+                print(f"Stroke number: {stroke_number}")
+
+                stroke_number += 1
+                vib_list = []
 
 if __name__ == "__main__":
     try:

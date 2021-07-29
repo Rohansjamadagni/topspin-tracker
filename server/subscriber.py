@@ -7,13 +7,16 @@ import paho.mqtt.client as mqtt
 import pose_utils as pu
 import ball_utils as bu
 import ansible_utils as au
+import vibration_utils as vu
+
+from csv_utils import CSV
 
 broker_config = json.load(open('../ips.json', 'r'))
 broker_ip = broker_config['broker_ip']
 broker_port = broker_config['broker_port']
 
-keypoint_csv_1 = CSV(filename="keypoint_csvs/cam_1/2_test.csv", columns=kpt_cols)
-keypoint_csv_2 = CSV(filename="keypoint_csvs/cam_2/2_test.csv", columns=kpt_cols)
+keypoint_csv_1 = CSV(filename="keypoint_csvs/cam_1/test.csv", columns=pu._get_columns())
+keypoint_csv_2 = CSV(filename="keypoint_csvs/cam_2/test.csv", columns=pu._get_columns())
 
 vib = mqtt.Client()
 ball = mqtt.Client()
