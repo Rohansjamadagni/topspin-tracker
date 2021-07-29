@@ -13,3 +13,7 @@ def start_record():
 
 def start_replay():
     os.system('ansible-playbook -i ../ansible/hosts ../ansible/replay.yml  &')
+
+def take_picture():
+    os.system('ansible-playbook -i ../ansible/hosts.yml ../ansible/picture.yml')
+

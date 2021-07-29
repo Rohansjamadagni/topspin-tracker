@@ -1,0 +1,17 @@
+---
+- hosts: ball_detector
+  gather_facts: no
+
+  tasks:
+  - name: Click the picture
+    shell: "python3 get_picture.py"
+    args: 
+      chdir: ~/Documents/topspin-tracker
+
+  - name: Synchronize Pictures folder
+    synchronize:
+      src: ~/Documents/topspin-tracker/pictures
+      dest: ../server/pictures
+      delete: yes
+      recursive: true
+     
