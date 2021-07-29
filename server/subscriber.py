@@ -4,7 +4,7 @@ import json
 import sys
 import paho.mqtt.client as mqtt
 
-import pose_utils as pu
+from pose_utils import PoseCam
 import ball_utils as bu
 import ansible_utils as au
 import vibration_utils as vu
@@ -20,11 +20,13 @@ keypoint_csv_2 = CSV(filename="keypoint_csvs/cam_2/test.csv", columns=pu._get_co
 
 vib = mqtt.Client()
 ball = mqtt.Client()
-pose_1 = mqtt.Client()
-pose_2 = mqtt.Client()
+
+pose_1 = PoseCame(cam_number=1, csv_dest="keypoint_csvs/cam_1/test.csv")
+pose_2 = PoseCame(cam_number=2, csv_dest="keypoint_csvs/cam_1/test.csv")
 
 vib.connect(broker_ip, broker_port)
 ball.connect(broker_ip, broker_port)
+
 pose_1.connect(broker_ip, broker_port)
 pose_2.connect(broker_ip, broker_port)
 
@@ -40,54 +42,10 @@ def on_connect_ball(client, userdata, detect_flags, rc):
     print("Connected to the ball topic!")
     print("Attempting to connect to ball camera")
 
-def on_connect_pose_1(client, userdata, detect_flags, rc):
-    client.subscribe("pose_1/#")
-    print("Connected to the pose_1 topic!")
-    print("Attempting to connect to pose_1 camera")
-    # au.ansible()
-
-def on_connect_pose_2(client, userdata, detect_flags, rc):
-    client.subscribe("pose_2/#")
-    print("Connected to the pose_2 topic!")
-    print("Attempting to connect to pose_2 camera")
-    # au.ansible()
-
 def on_connect_vib(client, userdata, detect_flags, rc):
     client.subscribe("vibration/#")
     print("Connected to the vibration topic!")
     print("Attempting to connect to sensors")
-
-def on_message_pose_1(client, ud, msg):
-    contents = msg.payload.decode()
-
-    if msg.topic == 'pose_1/connected':
-        pu.on_connect(contents)
-    elif msg.topic == 'pose_1/coords':
-        pu.on_coords(contents)
-    elif msg.topic == 'pose_1/progress':
-        pu.on_rcv_frame_count(contents)
-    elif msg.topic == 'pose_1/vibration':
-        pu.on_vibration(contents)
-    elif msg.topic == 'pose_1/finished':
-        pu.on_finish(contents)
-    elif msg.topic == 'pose_1/error':
-        pack(contents)
-    else:
-        print('Wrong pose_1 topic')
-
-def on_message_pose_2(client, ud, msg):
-    contents = msg.payload.decode()
-
-    if msg.topic == 'pose_2/connected':
-        pu.on_connect(contents)
-    elif msg.topic == 'pose_2/coords':
-        pu.on_coords(contents)
-    elif msg.topic == 'pose_2/finished':
-        pu.on_finish(contents)
-    elif msg.topic == 'pose_2/error':
-        pack(contents)
-    else:
-        print('Wrong pose_2 topic')
 
 def on_message_vib(client, ud, msg):
     contents = msg.payload.decode()
@@ -129,14 +87,9 @@ while True:
         vib.on_connect = on_connect_vib
         vib.on_message = on_message_vib
 
-        pose_1.on_connect = on_connect_pose_1
-        pose_1.on_message = on_message_pose_1
-
-        pose_2.on_connect = on_connect_pose_2
-        pose_2.on_message = on_message_pose_2
-
         # ball.loop_start()
         vib.loop_start()
+
         pose_1.loop_start()
         pose_2.loop_start()
     except KeyboardInterrupt:
