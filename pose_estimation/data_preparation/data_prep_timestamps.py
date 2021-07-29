@@ -48,7 +48,7 @@ def main():
                     main_csv_file=args.csv_file,
                     timestamps_file=args.timestamps_file)
 
-    splitter.generate_splits(
+    splitter.generate_split_csvs(
         csv_save_dir=args.csv_output_dir,
         video_save_dir=args.video_output_dir,
         stroke_name=args.stroke_name
