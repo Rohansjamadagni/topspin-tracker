@@ -132,9 +132,10 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        client.publish(f'pose_{camera}/finished', json.dumps(f"Pose estimation camera {camera} has been terminated."))
+        print(f"Pose camera {camera} finished")
         renderer.exit()
         pose.exit()
-        client.publish(f'pose_{camera}/finished', json.dumps(f"Pose estimation camera {camera} has been terminated."))
         exit()
     except Exception as e:
         client.publish(f'pose_{camera}/error', json.dumps(e))
