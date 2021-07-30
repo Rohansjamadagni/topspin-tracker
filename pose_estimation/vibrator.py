@@ -49,13 +49,15 @@ def main():
         if len(vib_list) == 1:
             if GPIO.input(vib_2) > 0 or (time.time()-vib_list[0] > TIME_THRESH):
                 print("Vib 2")
-                vib_list.append(time.time())
-                client.publish(f'vibration_{args.cam}/pitch', json.dumps([vib_list]))
 
-                print(f"Duration of stroke: {vib_list[1] - vib_list[0]}")
-                print(f"Stroke number: {stroke_number}")
+                if time.time() - vib_list[0] > 1e-1:
+                    vib_list.append(time.time())
+                    client.publish(f'vibration_{args.cam}/pitch', json.dumps([vib_list]))
 
-                stroke_number += 1
+                    print(f"Duration of stroke: {vib_list[1] - vib_list[0]}")
+                    print(f"Stroke number: {stroke_number}")
+
+                    stroke_number += 1
                 vib_list = []
 
 if __name__ == "__main__":
