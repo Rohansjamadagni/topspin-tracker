@@ -45,7 +45,7 @@ parser.add_argument("-o","--output",
                     help="Path to output video file")
 parser.add_argument("-co","--csv-output",
                     help="Path to output csv file")
-parser.add_argument("--cam",
+parser.add_argument("--cam", type=int,
                     help="Camera number")
 
 args = parser.parse_args()

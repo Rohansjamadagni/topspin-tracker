@@ -22,7 +22,7 @@ pose_2.connect(broker_ip, broker_port)
 
 while True:
     try:
-        ball.loop_start()
+        # ball.loop_start()
         vib.loop_start()
 
         pose_1.loop_start()

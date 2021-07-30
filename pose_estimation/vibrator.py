@@ -3,6 +3,15 @@ import time
 import json
 import paho.mqtt.client as mqtt
 import sys
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--cam", type=int,
+                    help="Camera number")
+
+args = parser.parse_args()
+
 vib_1 = 21
 vib_2 = 20
 
@@ -21,7 +30,7 @@ try:
 except:
     exit()
 
-client.publish('vibration/connected', json.dumps("Vibration sensors connected"))
+client.publish(f'vibration_{args.cam}/connected', json.dumps("Vibration sensors connected"))
 
 TIME_THRESH = 1.5
 
@@ -41,7 +50,7 @@ def main():
             if GPIO.input(vib_2) > 0 or (time.time()-vib_list[0] > TIME_THRESH):
                 print("Vib 2")
                 vib_list.append(time.time())
-                client.publish('vibration/pitch', json.dumps([vib_list]))
+                client.publish(f'vibration_{args.cam}/pitch', json.dumps([vib_list]))
 
                 print(f"Duration of stroke: {vib_list[1] - vib_list[0]}")
                 print(f"Stroke number: {stroke_number}")
@@ -54,8 +63,8 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("Vibrator terminated.")
-        client.publish('vibration/finished', json.dumps("Vibration sensors terminated"))
+        client.publish(f'vibration_{args.cam}/finished', json.dumps("Vibration sensors terminated"))
         exit()
     except Exception as e:
-        client.publish(f'vibration/error', json.dumps(e))
+        client.publish(f'vibration_{args.cam}/error', json.dumps(e))
         exit()

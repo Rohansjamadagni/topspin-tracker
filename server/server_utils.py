@@ -88,7 +88,7 @@ class PoseCam(mqtt.Client, Ansible):
         print(contents)
 
     def __on_coords(self, contents):
-        csv_list = json.loads(self, contents)
+        csv_list = json.loads(contents)
         self.csv_obj.add_list(csv_list)
 
     def __on_rcv_frame_count(self, contents):
@@ -99,7 +99,7 @@ class PoseCam(mqtt.Client, Ansible):
         print(f"\n{contents}")
 
         self.csv_obj.filter_columns(window_length=5, polyorder=2,
-                                columns=kpt_cols[:-1], overwrite=True)
+                                columns=self._get_columns()[:-1], overwrite=True)
 
         self.csv_obj.save()
 
@@ -136,19 +136,19 @@ class BallCam(mqtt.Client, Ansible):
         else:
             print(f'Wrong ball_{self.cam_number} topic')
 
-    def __on_connect(contents):
+    def __on_connect(self, contents):
         pass
 
-    def __on_record(contents):
+    def __on_record(self, contents):
         pass
 
-    def __on_finish_record(contents):
+    def __on_finish_record(self, contents):
         pass
 
-    def __on_replay(contents):
+    def __on_replay(self, contents):
         pass
 
-    def __on_finish_replay(contents):
+    def __on_finish_replay(self, contents):
         pass
 
 class Vibrator(mqtt.Client, Ansible):
@@ -167,7 +167,7 @@ class Vibrator(mqtt.Client, Ansible):
         print(f"Connected to the vibration_{self.cam_number} topic!")
         print(f"Attempting to connect to vibration_{self.cam_number} camera")
 
-    def on_message_vib(self, client, ud, msg):
+    def on_message(self, client, ud, msg):
         contents = msg.payload.decode()
 
         if msg.topic == f'vibration_{self.cam_number}/connected':
@@ -177,17 +177,17 @@ class Vibrator(mqtt.Client, Ansible):
         elif msg.topic == f'vibration_{self.cam_number}/finished':
             self.__on_finish(contents)
         elif msg.topic == f'vibration_{self.cam_number}/error':
-            pack(contents)
+            self.destroy(contents)
         else:
             print(f'Wrong vibration_{self.cam_number} topic')
 
-    def __on_connect(contents):
+    def __on_connect(self, contents):
         print(contents)
 
-    def __on_vibration(contents):
+    def __on_vibration(self, contents):
         timestamp_list = json.loads(contents)
         self.csv_obj.add_list(timestamp_list)
 
-    def __on_finish(contents):
+    def __on_finish(self, contents):
         print(contents)
         self.csv_obj.save()
