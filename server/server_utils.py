@@ -108,7 +108,7 @@ class BallCam(mqtt.Client, Ansible):
         self,
         cam_number: int):
 
-        super(BallCam, self).__init__()
+        mqtt.Client.__init__(self)
 
         self.cam_number = cam_number
 
@@ -157,7 +157,7 @@ class Vibrator(mqtt.Client, Ansible):
         cam_number: int,
         csv_dest: str):
 
-        super(Vibrator, self).__init__()
+        mqtt.Client.__init__(self)
 
         self.cam_number = cam_number
         self.csv_obj = CSV(filename=csv_dest, columns=['left', 'right'])
