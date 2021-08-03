@@ -50,6 +50,9 @@ parser.add_argument("--cam", type=int,
 
 args = parser.parse_args()
 
+args.lm_m = "831"
+args.internal_fps = 25
+
 def _get_list(landmarks):
     csv_list = []
     parts_list = ['left_shoulder', 'right_shoulder',

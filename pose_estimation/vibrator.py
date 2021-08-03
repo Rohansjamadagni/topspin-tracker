@@ -48,8 +48,9 @@ def main():
 
         if len(vib_list) == 1:
             if GPIO.input(vib_2) > 0 or (time.time()-vib_list[0] > TIME_THRESH):
-                if time.time()-vib_list[0] > 1e-1:
-                    print("Vib 2")
+                print("Vib 2")
+
+                if time.time() - vib_list[0] > 1e-1:
                     vib_list.append(time.time())
                     client.publish(f'vibration_{args.cam}/pitch', json.dumps([vib_list]))
 
