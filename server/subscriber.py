@@ -3,16 +3,25 @@ import subprocess
 import json
 import sys
 
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-c","--csv",
+                    help="Path to output csv file from cams")
+
+args = parser.parse_args()
+
 from server_utils import PoseCam, BallCam, Vibrator, Ansible
 
 broker_config = json.load(open('../ips.json', 'r'))
 broker_ip = broker_config['broker_ip']
 broker_port = broker_config['broker_port']
 
-vib = Vibrator(cam_number=1, csv_dest="timestamp_csvs/test.csv")
+vib = Vibrator(cam_number=1, csv_dest=f"timestamp_csvs/{args.csv}")
 ball = BallCam(cam_number=1)
-pose_1 = PoseCam(cam_number=1, csv_dest="keypoint_csvs/cam_1/test.csv")
-pose_2 = PoseCam(cam_number=2, csv_dest="keypoint_csvs/cam_2/test.csv")
+pose_1 = PoseCam(cam_number=1, csv_dest=f"keypoint_csvs/cam_1/{args.csv}")
+pose_2 = PoseCam(cam_number=2, csv_dest=f"keypoint_csvs/cam_2/{args.csv}")
 
 vib.connect(broker_ip, broker_port)
 ball.connect(broker_ip, broker_port)

@@ -18,7 +18,7 @@ def make_args():
     parser.add_argument('--full', '-f', action='store_true', help='Call this to view full screen video')
     parser.add_argument('--hand', default='right')
     parser.add_argument('-o', '--output', default=None, type=str, help="Saves the output video to provided path")
-    parser.add_argument('--black-background', action='store_true', help="Omit background or not")
+    parser.add_argument('-bbg', '--black-background', action='store_true', help="Omit background or not")
     parser.add_argument('--pcolor', type=str, help="Enter joints mapping color")
     parser.add_argument('--lcolor', type=str, help="Enter stick (line) mapping color")
 

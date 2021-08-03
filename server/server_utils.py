@@ -102,6 +102,7 @@ class PoseCam(mqtt.Client, Ansible):
                                 columns=self._get_columns()[:-1], overwrite=True)
 
         self.csv_obj.save()
+        print(f"Saved keypoint csv from {self.cam_number}")
 
 class BallCam(mqtt.Client, Ansible):
     def __init__(
@@ -191,3 +192,4 @@ class Vibrator(mqtt.Client, Ansible):
     def __on_finish(self, contents):
         print(contents)
         self.csv_obj.save()
+        print(f"Saved timestamp csv from {self.cam_number}")
