@@ -58,6 +58,9 @@ def main():
                     print(f"Stroke number: {stroke_number}")
 
                     stroke_number += 1
+                else:
+                    print("Ignored.")
+
                 vib_list = []
 
 if __name__ == "__main__":

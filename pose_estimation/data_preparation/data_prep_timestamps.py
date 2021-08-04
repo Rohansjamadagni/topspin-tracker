@@ -36,7 +36,12 @@ def make_args():
     assert args.video != ''
     assert args.csv_file != ''
     assert args.timestamps_file != ''
+
     assert args.csv_output_dir != ''
+    os.makedirs(args.csv_output_dir)
+
+    if args.video_output_dir is not None:
+        os.makedirs(args.video_output_dir)
 
     return args
 
