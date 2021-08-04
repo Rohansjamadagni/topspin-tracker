@@ -36,7 +36,7 @@ if __name__ == '__main__':
     cv2.namedWindow('image')
     cv2.setMouseCallback('image', draw_circle)
     warped_coordinates = np.array(
-        [[0, 0], [1280, 0], [0, 720], [1280, 720]], np.float32)
+        [[0, 0], [1920, 0], [0, 1080], [1920, 1080]], np.float32)
 
     while(1):
         cv2.imshow('image', img)

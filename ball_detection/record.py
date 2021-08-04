@@ -234,7 +234,7 @@ try:
     def save_to_csv():
         df = pd.DataFrame(data=timekeeper, columns=['frame_number', 'timestamp'] )
         print(timekeeper)
-        df.to_csv("timestamps.csv" )
+        df.to_csv("recorded_timestamps.csv" )
         print(df)
 
     def append_time_stamp(frame_number):
@@ -323,6 +323,7 @@ try:
 
     frame_q.put(None)
     store_p.join()
+    client.publish("ball/record/finished", str(count))
 except Exception as e:
     client.publish("ball/error", str(e))
     print(e)

@@ -28,4 +28,10 @@ while True:
         pose_1.loop_start()
         pose_2.loop_start()
     except KeyboardInterrupt:
-        exit()
+        print('s to stop recording and q to quit')
+        input_ = input()
+        if input_ == 'q':
+            ball.destroy()
+            exit()
+        if input_ == 's':
+            ball.destroy()

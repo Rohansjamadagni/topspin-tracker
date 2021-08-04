@@ -111,44 +111,48 @@ class BallCam(mqtt.Client, Ansible):
         mqtt.Client.__init__(self)
 
         self.cam_number = cam_number
+    
 
     def on_connect(self, client, userdata, detect_flags, rc):
-        self.subscribe(f"ball_{self.cam_number}/#")
-        print(f"Connected to the ball_{self.cam_number} topic!")
-        print(f"Attempting to connect to ball_{self.cam_number} camera")
+        self.subscribe(f"ball/#")
+        print(f"Connected to the ball topic!")
+        print(f"Attempting to connect to ball camera")
 
     def on_message(self, client, ud, msg):
         contents = msg.payload.decode()
 
-        if msg.topic == f'ball_{self.cam_number}/connected':
+        if msg.topic == f'ball/connected':
             self.__on_connect(contents)
-        elif msg.topic == f'ball_{self.cam_number}/progress/record':
+        elif msg.topic == f'ball/progress/record':
             self.__on_record(contents)
-        elif msg.topic == f'ball_{self.cam_number}/record/finished':
+        elif msg.topic == f'ball/record/finished':
             self.__on_finish_record(contents)
-        elif msg.topic == f'ball_{self.cam_number}/progress/replay':
+        elif msg.topic == f'ball/progress/replay':
             self.__on_replay(contents)
         # receive data from ansible to start replay
-        elif msg.topic == f'ball_{self.cam_number}/replay/finished':
+        elif msg.topic == f'ball/replay/finished':
             self.__on_finish_replay(contents)
-        elif msg.topic == f'ball_{self.cam_number}/error':
+        elif msg.topic == f'ball/error':
             self.destroy(contents)
         else:
-            print(f'Wrong ball_{self.cam_number} topic')
+            print(f'Wrong ball topic')
 
     def __on_connect(self, contents):
-        pass
+        start_record()
 
     def __on_record(self, contents):
-        pass
+        print(f"Record progress - {contents}")
 
     def __on_finish_record(self, contents):
-        pass
+        print(f"Done recording {contents} frames.")
+        start_replay()
 
     def __on_replay(self, contents):
-        pass
+        # ball detection on camera and generating final_result.csv
+        print(f"Replay progress - {contents}")
 
     def __on_finish_replay(self, contents):
+        # check for speed and ball location save to json.
         pass
 
 class Vibrator(mqtt.Client, Ansible):

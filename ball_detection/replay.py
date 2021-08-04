@@ -19,6 +19,7 @@ data_to_save = {
     'y' : [],
     'z' : [],
     'confidence' : [],
+    'timestamp' : [],
 }
 
 # meta_data_ = open('../ips.json', 'r')
@@ -42,14 +43,16 @@ def get_path_name():
 	return str(data_)
 
 def find_frames_to_process():
-    df = pd.read_csv('timestamps.csv')
-    recorded_ = pd.read_csv('sample.csv')
+    df = pd.read_csv('recorded_timestamps.csv')
+    recorded_ = pd.read_csv('vibrator.csv')
     final_ranges = []
+    final_timestamps = []
     for _, row in recorded_.iterrows():
-        start_range, end_range = row['range_start'], row['range_stop']
+        start_range, end_range = row['left'], row['right']
         new_df = df[df['timestamp'].between(start_range, end_range, inclusive=True)]
         final_ranges.append(list(new_df['frame_number']))
-    return final_ranges
+        final_timestamps.append(list(new_df['timestamp'])))
+    return final_ranges, final_timestamps
 
 parser = argparse.ArgumentParser()
 
@@ -57,14 +60,14 @@ try:
     labelMap = ['ball']
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-co', '--csv_output', help="Enter where to save the csv file along with file name",default='result.csv')
+    parser.add_argument('-co', '--csv_output', help="Enter where to save the csv file along with file name", default='final_result.csv')
     parser.add_argument('-p', '--path', default=get_path_name(), type=str, help="Path where to store the captured data")
     parser.add_argument('-s', '--show', default=False, type=bool, help="Show opencv windows")
     args = parser.parse_args()
 
     # Get the stored frames path
     dest = Path(args.path).resolve().absolute()
-    frames_sorted = find_frames_to_process()
+    frames_sorted, timestamp_frames = find_frames_to_process()
     pipeline = dai.Pipeline()
 
     left_in = pipeline.createXLinkIn()
@@ -133,7 +136,7 @@ try:
     def to_planar(arr, shape):
         return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
-    def append_data(stroke_number, frame_number, x, y, z, confidence):
+    def append_data(stroke_number, frame_number, x, y, z, confidence, timestamp):
         global data_to_save
         data_to_save['stroke_number'].append(stroke_number)
         data_to_save['frame_number'].append(frame_number)
@@ -141,9 +144,9 @@ try:
         data_to_save['y'].append(y)
         data_to_save['z'].append(z)
         data_to_save['confidence'].append(confidence)
+        data_to_save['timestamp'].append(timestamp)
 
     def save_data():
-        append_data(1,2,3,4,5,6)
         global data_to_save
         
         data_ = pd.DataFrame(data_to_save)
@@ -166,9 +169,10 @@ try:
         qRgbOut = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
         color = (255, 0, 0)
+        # [[1231231],[12313123],[123124131]]
         # Read rgb/mono frames, send them to device and wait for the spatial object detection results
         for stroke in range(len(frames_sorted)):
-            for frame_folder in frames_sorted[stroke]:
+            for timestamp_index, frame_folder in enumerate(frames_sorted[stroke]):
                 files = os.listdir(str((Path(args.path) / str(frame_folder)).resolve().absolute()))
                 # If there is no rgb/left/right frame in the folder, skip this "frame"
                 if [f.startswith("color") or f.startswith("left") or f.startswith("right") for f in files].count(True) < 3: continue
@@ -258,6 +262,7 @@ try:
                             y=int(detection.spatialCoordinates.y),
                             z=int(detection.spatialCoordinates.z),
                             confidence=detection.confidence,
+                            timestamp=timestamp_frames[stroke][timestamp_index]
                             )
 
                 progress = frame_folder/len(frames_sorted[stroke])*100
