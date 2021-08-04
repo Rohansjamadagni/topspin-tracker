@@ -107,8 +107,6 @@ def main():
     while True:
         frame, body = pose.next_frame()
 
-        prev_list = None
-
         if camera == 1:
             client.publish(f'pose_{camera}/progress', json.dumps(frame_counter+1))
             frame_counter += 1
@@ -123,11 +121,8 @@ def main():
 
         if body is not None:
             csv_list = _get_list(body.landmarks.tolist())
-            prev_list = csv_list
-        elif prev_list is not None:
-            csv_list = prev_list
         else:
-            continue
+            csv_list = [[0 for _ in range(0, 19)]]
 
         client.publish(f'pose_{camera}/coords', json.dumps(csv_list))
 
