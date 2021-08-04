@@ -9,9 +9,6 @@ stroke_data = {
 }
 speed_for_each_stroke = {}
 
-def caluclate_speed():
-    pass
-
 
 def read_coordinates():
     f = open("coordinates.txt", 'r')
@@ -22,61 +19,8 @@ def read_coordinates():
     for i in str_table_coordinates:
     table_coordinates.append(list(map(int, (i.split(',')))))
     return table_coordinates
-
-
-def warp_coordinates(x, y, matrix):
-    p = (x, y)
-
-    px = (matrix[0][0] * p[0] + matrix[0][1] * p[1] + matrix[0][2]) / \
-        ((matrix[2][0] * p[0] + matrix[2][1] * p[1] + matrix[2][2]))
     
-    py = (matrix[1][0] * p[0] + matrix[1][1] * p[1] + matrix[1][2]) / \
-        ((matrix[2][0] * p[0] + matrix[2][1] * p[1] + matrix[2][2]))
-
-    return [int(px), int(py)]
-
-
-def get_transposed_coordinates(x, y):
-    table_coordinates = read_coordinates()
-    table_coordinates_corners = np.array([
-        table_coordinates[0],
-        table_coordinates[2],
-        table_coordinates[5],
-        table_coordinates[3]
-        ], np.float32)
     
-    warped_dimensions = np.array([[0, 0], [1920, 0], [0, 1080], [1920, 1080]], np.float32)
-
-    matrix = cv2.getPerspectiveTransform(table_coordinates_corners,
-                                         warped_dimensions)
-
-    x, y = warp_coordinates(x, y, matrix)
-    return [x, y]
-
-
-
-def caluclate_speed_and_placements():
-    global stroke_data
-    # do speed tomorrow
-    result = pd.read_csv('result.csv')
-    left_bounces = result.groupby("stroke_number").first().reset_index()
-    right_bounces = result.groupby("stroke_number").last().reset_index()
-    speed_for_each_stroke = get_speed()
-    for bounces in zip(left_bounces.iterrows(), right_bounces.iterrows()):
-        left, right = bounces[0][1], bounces[1][1]
-        data_ = 
-        {
-            "stroke_number" : left['stroke_number']
-            "left" : get_transposed_coordinates(left['x'], left['y'])
-            "right" : get_transposed_coordinates(right['x'], right['y'])
-            "speed" : speed_for_each_stroke[left['stroke_number']]
-        }
-        stroke_data['data'].append(data_)
-    
-    file_ = open('stroke_speed_result.json', 'w')
-    json.dump(stroke_data, file_)
-
-
 def find_net(table_coordinates):
     """
     Finding net coordinates, taking avg of x1 and x4 (mid points of table)
@@ -99,7 +43,6 @@ def get_coordinate_of_net_cross(x_coords):
 def euclidian_distance(x1, y1, x2, y2):
     distance = math.sqrt(((x1 - x2)**2) + ((y1 - y2)**2))
     return distance
-
 
 
 def get_speed(buffer=3, fps = 20):
@@ -163,3 +106,55 @@ def get_speed(buffer=3, fps = 20):
         speed_for_each_stroke[pos] = speed
 
     return speed_for_each_stroke
+
+
+def warp_coordinates(x, y, matrix):
+    p = (x, y)
+
+    px = (matrix[0][0] * p[0] + matrix[0][1] * p[1] + matrix[0][2]) / \
+        ((matrix[2][0] * p[0] + matrix[2][1] * p[1] + matrix[2][2]))
+    
+    py = (matrix[1][0] * p[0] + matrix[1][1] * p[1] + matrix[1][2]) / \
+        ((matrix[2][0] * p[0] + matrix[2][1] * p[1] + matrix[2][2]))
+
+    return [int(px), int(py)]
+
+
+def get_transposed_coordinates(x, y):
+    table_coordinates = read_coordinates()
+    table_coordinates_corners = np.array([
+        table_coordinates[0],
+        table_coordinates[2],
+        table_coordinates[5],
+        table_coordinates[3]
+        ], np.float32)
+    
+    warped_dimensions = np.array([[0, 0], [1920, 0], [0, 1080], [1920, 1080]], np.float32)
+
+    matrix = cv2.getPerspectiveTransform(table_coordinates_corners,
+                                         warped_dimensions)
+
+    x, y = warp_coordinates(x, y, matrix)
+    return [x, y]
+
+
+def caluclate_speed_and_placements():
+    global stroke_data
+    # do speed tomorrow
+    result = pd.read_csv('result.csv')
+    left_bounces = result.groupby("stroke_number").first().reset_index()
+    right_bounces = result.groupby("stroke_number").last().reset_index()
+    speed_for_each_stroke = get_speed()
+    for bounces in zip(left_bounces.iterrows(), right_bounces.iterrows()):
+        left, right = bounces[0][1], bounces[1][1]
+        data_ = 
+        {
+            "stroke_number" : left['stroke_number']
+            "left" : get_transposed_coordinates(left['x'], left['y'])
+            "right" : get_transposed_coordinates(right['x'], right['y'])
+            "speed" : speed_for_each_stroke[left['stroke_number']]
+        }
+        stroke_data['data'].append(data_)
+    
+    file_ = open('stroke_speed_result.json', 'w')
+    json.dump(stroke_data, file_)
