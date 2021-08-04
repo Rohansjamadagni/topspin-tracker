@@ -11,13 +11,13 @@
       delete: yes
       recursive: true
 
-  - name: synchronize push pose estimation folder
-    when: inventory_hostname in groups['pose_estimator']
-    synchronize:
-      src: ../../
-      dest: ~/topspin-tracker/
-      delete: yes
-      recursive: true
+  # - name: synchronize push pose estimation folder
+  #   when: inventory_hostname in groups['pose_estimator']
+  #   synchronize:
+  #     src: ../../
+  #     dest: ~/topspin-tracker/
+  #     delete: yes
+  #     recursive: true
 
   # - name: pip install requirements
   #   shell: "python -m pip install -r requirements.txt"

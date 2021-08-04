@@ -22,10 +22,10 @@ def draw_circle(event, x, y, flags, param):
         coordinates.append([x, y])
 
 def take_picture():
-    os.system('ansible-playbook -i ../ansible/hosts.yml ../ansible/picture.yml')
+    os.system('ansible-playbook --ask-pass -i ../ansible/hosts.yml ../ansible/picture.yml')
 
 if __name__ == '__main__':
-    if not os.isdir('pictures'):
+    if not os.path.isdir('pictures'):
         os.system("mkdir pictures")
     args = parser()
     
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     cv2.setMouseCallback('image', draw_circle)
     warped_coordinates = np.array(
         [[0, 0], [1920, 0], [0, 1080], [1920, 1080]], np.float32)
-
+        
     while(1):
         cv2.imshow('image', img)
         k = cv2.waitKey(20) & 0xFF
@@ -54,7 +54,7 @@ if __name__ == '__main__':
             print(coordinates)
             matrix = cv2.getPerspectiveTransform(
                 init_cooridantes, warped_coordinates)
-            result = cv2.warpPerspective(img, matrix, (1280, 720))
+            result = cv2.warpPerspective(img, matrix, (1920, 1080))
 
             pts = np.asarray(coordinates).reshape((-1, 1, 2))
             cv2.polylines(img, [pts], True, (255, 0, 255),

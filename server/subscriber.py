@@ -33,7 +33,7 @@ while True:
     try:
         # ball.loop_start()
         vib.loop_start()
-
+        ball.loop_start()
         pose_1.loop_start()
         pose_2.loop_start()
     except KeyboardInterrupt:

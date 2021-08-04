@@ -6,11 +6,11 @@
   - name: Click the picture
     shell: "python3 get_picture.py"
     args: 
-      chdir: ~/topspin-tracker
+      chdir: ~/topspin-tracker/ball_detection
 
   - name: Synchronize Pictures folder
     fetch:
-      src: ~/topspin-tracker/pictures/
+      src: ~/topspin-tracker/ball_detection/pictures/table_image.png
       dest: ../server/pictures/
       flat: yes 
      

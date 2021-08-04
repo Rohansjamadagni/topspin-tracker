@@ -9,11 +9,11 @@
       args:
         chdir: $HOME/Documents/topspin-tracker
     
-    - name: Start pose_estimation
-      shell: nohup python3 run_pose_estimation.py > record.log &
-      when: inventory_hostname in groups['pose_estimator']
-      args:
-        chdir: $HOME/Documents/topspin-tracker
+    # - name: Start pose_estimation
+    #   shell: nohup python3 run_pose_estimation.py > record.log &
+    #   when: inventory_hostname in groups['pose_estimator']
+    #   args:
+    #     chdir: $HOME/Documents/topspin-tracker
 
     - name: Start vibrator
       shell: nohup python3 vibrator.py > vibrator.log &

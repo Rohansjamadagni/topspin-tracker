@@ -1,5 +1,6 @@
 pose_estimation/filenames.txt
 ball_detection/filenames.txt
+data/
 
 # ignore pycache
 __pycache__
