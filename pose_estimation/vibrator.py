@@ -32,7 +32,7 @@ except:
 
 client.publish(f'vibration_{args.cam}/connected', json.dumps("Vibration sensors connected"))
 
-TIME_THRESH = 1.5
+TIME_THRESH = 1.6
 
 def main():
     vib_list = []
