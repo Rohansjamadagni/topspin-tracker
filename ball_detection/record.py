@@ -175,7 +175,6 @@ try:
             seq_streams.append("right")
         if not args.no_depth:
             seq_streams.append("depth")
-        print(seq_streams)
         ts_streams = ["color"]
         seq_ts_mapping_stream = seq_streams[0]
 
@@ -233,9 +232,7 @@ try:
 
     def save_to_csv():
         df = pd.DataFrame(data=timekeeper, columns=['frame_number', 'timestamp'] )
-        print(timekeeper)
         df.to_csv("recorded_timestamps.csv" )
-        print(df)
 
     def append_time_stamp(frame_number):
         timekeeper.append([frame_number, time.time()])

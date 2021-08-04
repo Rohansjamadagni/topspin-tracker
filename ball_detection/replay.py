@@ -51,7 +51,7 @@ def find_frames_to_process():
         start_range, end_range = row['left'], row['right']
         new_df = df[df['timestamp'].between(start_range, end_range, inclusive=True)]
         final_ranges.append(list(new_df['frame_number']))
-        final_timestamps.append(list(new_df['timestamp'])))
+        final_timestamps.append(list(new_df['timestamp']))
     return final_ranges, final_timestamps
 
 parser = argparse.ArgumentParser()
