@@ -17,7 +17,7 @@ def read_coordinates():
     str_table_coordinates = data.split(' ')
     table_coordinates = []
     for i in str_table_coordinates:
-    table_coordinates.append(list(map(int, (i.split(',')))))
+        table_coordinates.append(list(map(int, (i.split(',')))))
     return table_coordinates
     
     
