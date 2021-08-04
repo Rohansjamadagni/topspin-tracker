@@ -68,7 +68,6 @@ with dai.Device(pipeline) as device:
         ctrl = dai.CameraControl()
         ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.AUTO)
         ctrl.setCaptureStill(True)
-    
         controlQueue.send(ctrl)
 
         stillFrames = stillQueue.tryGetAll()
