@@ -56,6 +56,7 @@ def get_transposed_coordinates(x, y):
 
 
 def caluclate_speed_and_placements():
+    global stroke_data
     # do speed tomorrow
     result = pd.read_csv('result.csv')
     left_bounces = result.groupby("stroke_number").first().reset_index()
@@ -70,7 +71,10 @@ def caluclate_speed_and_placements():
             "right" : get_transposed_coordinates(right['x'], right['y'])
             "speed" : speed_for_each_stroke[left['stroke_number']]
         }
-        
+        stroke_data['data'].append(data_)
+    
+    file_ = open('stroke_speed_result.json', 'w')
+    json.dump(stroke_data, file_)
 
 
 def find_net(table_coordinates):
