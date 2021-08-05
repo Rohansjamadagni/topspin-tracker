@@ -15,7 +15,7 @@ import numpy as np
 def make_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--video', '-v', default='',
+    parser.add_argument('--video', '-v', default=None, type=str,
                         help='Enter path to video')
 
     parser.add_argument('--csv_file', '-cf', default='',
@@ -33,7 +33,7 @@ def make_args():
 
     args = parser.parse_args()
 
-    assert args.video != ''
+    # assert args.video != ''
     assert args.csv_file != ''
     assert args.timestamps_file != ''
 
