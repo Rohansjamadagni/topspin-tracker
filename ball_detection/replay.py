@@ -50,7 +50,9 @@ def find_frames_to_process():
     for _, row in recorded_.iterrows():
         start_range, end_range = row['left'], row['right']
         new_df = df[df['timestamp'].between(start_range, end_range, inclusive=True)]
-        final_ranges.append(list(new_df['frame_number']))
+        list_ = np.asarray(list(new_df['frame_number']))
+        list_ = list_+9
+        final_ranges.append(list_)
         final_timestamps.append(list(new_df['timestamp']))
     return final_ranges, final_timestamps
 
@@ -264,10 +266,15 @@ try:
                             confidence=detection.confidence,
                             timestamp=timestamp_frames[stroke][timestamp_index]
                             )
+                
+                # try:
+                #     progress = frame_folder/len(frames_sorted[stroke])*100
+                #     if int(frame_folder) % int(0.05*len(frames_sorted[stroke]) == 0):
+                #         client.publish("ball/progress/replay", f"Stroke number : {stroke}, {int(progress)}%")
+                # except:
+                #     print('div by 0 prolly')
+                #     pass
 
-                progress = frame_folder/len(frames_sorted[stroke])*100
-                if int(frame_folder) % int(0.05*len(frames_sorted[stroke]) == 0):
-                    client.publish("ball/progress/replay", f"Stroke number : {stroke}, {int(progress)}%")
                 if args.show:
                     cv2.imshow("rgb", rgbFrame)
                     cv2.imshow("depth", depthFrameColor)
