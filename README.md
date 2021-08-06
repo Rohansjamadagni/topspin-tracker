@@ -11,8 +11,8 @@ Respository for OpenCV AI Competition 2021 Phase II
 - [x] Add File Transfer
 - [x] Write Vibration Script
 - [x] Make Vibration Script Save csv upon keyboard interrupt
-- [ ] Collect stroke data
-- [ ] Train stroke recognition model
+- [x] Collect stroke data
+- [x] Train stroke recognition model
 - [ ] Ball placement logic
 - [ ] Ball speed
 - [ ] Ball co ordinates transform for visualisation
