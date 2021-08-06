@@ -1,0 +1,11 @@
+
+---
+- hosts: all
+  gather_facts: no
+
+  tasks:
+  - name: stop all running python processes
+    shell: echo "1" > flex.tape
+    args:
+        chdir: ~/topspin-tracker/
+    ignore_errors: yes

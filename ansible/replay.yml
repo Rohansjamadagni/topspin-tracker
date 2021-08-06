@@ -8,13 +8,13 @@
 
     - name: copy vibrator csv from server to ball_detector
       when: inventory_hostname in groups['ball_detector']
-      synchronize:
-        src: ../server/vibrator.csv 
-        dest: ~/Documents/topspin-tracker
+      copy:
+        src: ../server/timestamp_csvs/test.csv
+        dest: ~/topspin-tracker/ball_detection/vibrator.csv
       
     - name: Start replay on ball_detector
       when: inventory_hostname in groups['ball_detector']
       shell: nohup python3 replay.py > replay.log &
       args:
-        chdir: ~/Documents/topspin-tracker 
+        chdir: ~/topspin-tracker/ball_detection
       tags: start_replay

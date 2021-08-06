@@ -4,5 +4,17 @@
 
   tasks:
   - name: stop all running python processes 
-    shell: pkill -f "record.py" & pkill -f "replay.py" & pkill -f "publisher.py"
+    shell: pkill -f "record.py" &
+    ignore_errors: yes
+
+  - name: stop all running python processes
+    shell: pkill -f "replay.py" &
+    ignore_errors: yes
+
+  - name: stop all running python processes
+    shell: pkill -f "vibrator.py" &
+    ignore_errors: yes
+
+  - name: stop all running python processes
+    shell: pkill -f "run_pose_estimation.py" &
     ignore_errors: yes

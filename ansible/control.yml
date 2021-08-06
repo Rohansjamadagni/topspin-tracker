@@ -7,17 +7,22 @@
       shell: nohup python3 record.py > record.log &
       when: inventory_hostname in groups['ball_detector']
       args:
-        chdir: $HOME/Documents/topspin-tracker
+        chdir: ~/topspin-tracker/ball_detection/
     
-    # - name: Start pose_estimation
-    #   shell: nohup python3 run_pose_estimation.py > record.log &
-    #   when: inventory_hostname in groups['pose_estimator']
-    #   args:
-    #     chdir: $HOME/Documents/topspin-tracker
+    - name: Start pose_estimation on cam 1
+      shell: nohup python3 run_pose_estimation.py --cam 1 -o test.mp4 > record_1.log &
+      when: inventory_hostname in groups['pose_estimator_1']
+      args:
+        chdir: ~/topspin-tracker/pose_estimation/
+
+    - name: Start pose_estimation on cam 2
+      shell: nohup python3 run_pose_estimation.py --cam 2 -o test.mp4 > record_2.log &
+      when: inventory_hostname in groups['pose_estimator_2']
+      args:
+        chdir: ~/topspin-tracker/pose_estimation/
 
     - name: Start vibrator
-      shell: nohup python3 vibrator.py > vibrator.log &
-      when: inventory_hostname in groups['pose_estimator']
+      shell: nohup python3 vibrator.py --cam 1 > vibrator.log &
+      when: inventory_hostname in groups['pose_estimator_1']
       args:
-        chdir: $HOME/Documents/topspin-tracker
-
+        chdir: ~/topspin-tracker/pose_estimation/
