@@ -107,9 +107,10 @@ def main():
     while True:
         frame, body = pose.next_frame()
 
-        if camera == 1:
-            client.publish(f'pose_{camera}/progress', json.dumps(frame_counter+1))
-            frame_counter += 1
+        if camera == 1 and frame_counter%60 == 0:
+            client.publish(f'pose_{camera}/progress', json.dumps(frame_counter))
+
+        frame_counter += 1
 
         if frame is None: break
 
@@ -126,15 +127,23 @@ def main():
 
         client.publish(f'pose_{camera}/coords', json.dumps(csv_list))
 
+        f = open('../flex.tape', 'r')
+        number = int(f.read()[0])
+
+        if number == 1:
+            break
+
+        f.close()
+
+    client.publish(f'pose_{camera}/finished', json.dumps(f"Pose estimation camera {camera} has been terminated."))
+    print(f"Pose camera {camera} finished")
+
+    renderer.exit()
+    pose.exit()
+
 if __name__ == "__main__":
     try:
         main()
-    except KeyboardInterrupt:
-        client.publish(f'pose_{camera}/finished', json.dumps(f"Pose estimation camera {camera} has been terminated."))
-        print(f"Pose camera {camera} finished")
-        renderer.exit()
-        pose.exit()
-        exit()
     except Exception as e:
         client.publish(f'pose_{camera}/error', json.dumps(e))
         exit()

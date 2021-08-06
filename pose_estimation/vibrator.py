@@ -63,13 +63,20 @@ def main():
 
                 vib_list = []
 
+        f = open('../flex.tape', 'r')
+        number = int(f.read()[0])
+
+        if number == 1:
+            break
+
+        f.close()
+
+    print("Vibrator terminated.")
+    client.publish(f'vibration_{args.cam}/finished', json.dumps("Vibration sensors terminated"))
+
 if __name__ == "__main__":
     try:
         main()
-    except KeyboardInterrupt:
-        print("Vibrator terminated.")
-        client.publish(f'vibration_{args.cam}/finished', json.dumps("Vibration sensors terminated"))
-        exit()
     except Exception as e:
         client.publish(f'vibration_{args.cam}/error', json.dumps(e))
         exit()
