@@ -22,7 +22,7 @@ def draw_circle(event, x, y, flags, param):
         coordinates.append([x, y])
 
 def take_picture():
-    os.system('ansible-playbook --ask-pass -i ../ansible/hosts.yml ../ansible/picture.yml')
+    os.system('ansible-playbook -i ../ansible/hosts.yml ../ansible/picture.yml')
 
 if __name__ == '__main__':
     if not os.path.isdir('pictures'):
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     coordinates = []
     img = cv2.imread(args.input)
-    cv2.namedWindow('image')
+    cv2.namedWindow('image', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('image', draw_circle)
     warped_coordinates = np.array(
         [[0, 0], [1920, 0], [0, 1080], [1920, 1080]], np.float32)
@@ -59,8 +59,12 @@ if __name__ == '__main__':
             pts = np.asarray(coordinates).reshape((-1, 1, 2))
             cv2.polylines(img, [pts], True, (255, 0, 255),
                           thickness=3)  # coordinates in cw manner
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    cv2.imshow("res", result)
+    # cv2.imshow("res", result)
+
+    cv2.destroyAllWindows()
+
     cv2.imwrite("pictures/warped.jpg", result)
     files = open('coordinates.txt', 'w')
     for i, j in coordinates:

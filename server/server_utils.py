@@ -92,8 +92,7 @@ class PoseCam(mqtt.Client, Ansible):
         self.csv_obj.add_list(csv_list)
 
     def __on_rcv_frame_count(self, contents):
-        sys.stdout.write(f"\rCurrent frame number: {contents}")
-        sys.stdout.flush()
+        print(f"Pose estimation frame number: {contents}")
 
     def __on_finish(self, contents):
         print(f"\n{contents}")
@@ -112,7 +111,6 @@ class BallCam(mqtt.Client, Ansible):
         mqtt.Client.__init__(self)
 
         self.cam_number = cam_number
-    
 
     def on_connect(self, client, userdata, detect_flags, rc):
         self.subscribe(f"ball/#")
@@ -139,22 +137,23 @@ class BallCam(mqtt.Client, Ansible):
             print(f'Wrong ball topic')
 
     def __on_connect(self, contents):
-        start_record()
+        print(contents)
+        # self.start_record()
 
     def __on_record(self, contents):
-        print(f"Record progress - {contents}")
+        print(f"Ball record frame number: {contents}")
 
     def __on_finish_record(self, contents):
         print(f"Done recording {contents} frames.")
-        start_replay()
+        self.start_replay()
 
     def __on_replay(self, contents):
         # ball detection on camera and generating final_result.csv
-        print(f"Replay progress - {contents}")
+        print(f"Replay progress: {contents}")
 
     def __on_finish_replay(self, contents):
         # check for speed and ball location save to json.
-        pass
+        print(contents)
 
 class Vibrator(mqtt.Client, Ansible):
     def __init__(
