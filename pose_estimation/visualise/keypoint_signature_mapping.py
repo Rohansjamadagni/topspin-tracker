@@ -21,6 +21,7 @@ def make_args():
     parser.add_argument('-bbg', '--black-background', action='store_true', help="Omit background or not")
     parser.add_argument('--pcolor', type=str, help="Enter joints mapping color")
     parser.add_argument('--lcolor', type=str, help="Enter stick (line) mapping color")
+    parser.add_argument('-s', '--start', type=int, default=0, help="Enter frame to start from")
 
     args = parser.parse_args()
 
@@ -49,6 +50,9 @@ def main():
 
     if args.output is not None:
         out = mapper.get_writer_object(args.output)
+
+    for _ in range(0, args.start):
+        ret, img = mapper.get_next()
 
     while True:
         ret, img = mapper.get_next()
