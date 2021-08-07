@@ -43,21 +43,15 @@ class DataSplitter:
 
     def get_splits_list(
                 self,
-                indices: list,
-                max_len: int = 40,
-                padding: bool = True) -> np.ndarray:
+                columns: list) -> np.ndarray:
 
         """
         Generates splits based on timestamps and returns an array with all the splits from the main_csv_file
 
         Parameters
         ----------
-        indices: list
-            indices of columns to get from the csv file
-        max_len: int
-            max permittable length of a single split
-        padding: bool
-            if true, will zero-pad each split to the max len provided
+        columns: list
+            columns to get from the csv file
 
         Returns
         -------
@@ -69,16 +63,7 @@ class DataSplitter:
         for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
             res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
 
-            split = res.iloc[:, indices].values.tolist()
-
-            if len(split) > max_len:
-                split = split[:max_len]
-            elif len(split) < max_len and padding == True:
-                split_len = len(split)
-                indices_len = len(indices)
-
-                for _ in range(split_len, max_len):
-                    split.append([0 for _ in range(0, indices_len)])
+            split = np.asarray(res[columns].values.tolist())
 
             splits.append(split)
 
