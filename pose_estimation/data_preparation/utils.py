@@ -18,6 +18,29 @@ class DataSplitter:
         if video is not None:
             self.vid = cv2.VideoCapture(video)
 
+    def generate_split_csvs(
+        self,
+        csv_save_dir: str = None,
+        video_save_dir: str = None,
+        stroke_name: str = None
+    ):
+        assert csv_save_dir is not None
+
+        if stroke_name is None:
+            stroke_name = 'stroke'
+
+        for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
+            res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
+            res.to_csv(f"{csv_save_dir}/{stroke_name}_{idx+1}.csv")
+
+            if video_save_dir is not None:
+                out = self.get_writer_object(f"{video_save_dir}/{stroke_name}_{idx+1}.mp4")
+                for i in res.index.tolist():
+                    self.vid.set(1, i)
+                    ret, frame = self.vid.read()
+                    out.write(frame)
+                out.release()
+
     def get_splits_list(
                 self,
                 indices: list,
