@@ -1,3 +1,4 @@
+import math
 import os
 import json
 import pandas as pd
@@ -32,9 +33,11 @@ def find_net(table_coordinates):
     return avg
 
 
-def get_coordinate_of_net_cross(x_coords):
+def get_coordinate_of_net_cross(x_coords, midpoint_x=270):
+    print(list(x_coords), midpoint_x)
     for pos, x_coordinate in enumerate(list(x_coords)):
         if x_coordinate >= midpoint_x:
+            print('pos', pos)
             return pos
     
     # 1 2 3 4 5 6 7 8 9 9 10
@@ -50,24 +53,26 @@ def get_speed(buffer=3, fps = 20):
     table_coordinates = read_coordinates()
     midpoint_x = find_net(table_coordinates)
     coordinates_df = pd.read_csv('result.csv')
-    stroke_number = coordinates_df['sroke_number']
-
+    stroke_number = coordinates_df['stroke_number']
+    x_coords = coordinates_df['x']
+    y_coords = coordinates_df['y']
     x_coords = list(x_coords)
     y_coords = list(y_coords)
 
     strokes_x_y = []
-    prev_stroke_number = list(stroke_number[0])
+    prev_stroke_number = list(stroke_number)[0]
     stroke = []
     # separate strokes into array
     for i in coordinates_df.iterrows():
-        if prev_stroke_number != i['stroke_number']:
-            prev_stroke_number = i['stroke_number']
-            strokes_x_y.append(stroke)
+        # print(i[1]['stroke_number'])
+        if prev_stroke_number != i[1]['stroke_number']:
+            prev_stroke_number = i[1]['stroke_number']
+            strokes_x_y.append(np.asarray(stroke))
             stroke = []
-        stroke.append([i['x'], i['y']])
+        stroke.append([i[1]['x'], i[1]['y']])
 
-        prev_stroke_number
-
+    # import sys
+    # sys.exit(1)
 
     left_midpoint_coordinate = [
     ((table_coordinates[0][0] + table_coordinates[5][0]) / 2),
@@ -83,16 +88,20 @@ def get_speed(buffer=3, fps = 20):
                     right_midpoint_coordinate[0],
                     right_midpoint_coordinate[1])
 
-    
+    # print(stroke)
+    import sys
     for pos, stroke in enumerate(strokes_x_y):
         x_coords = stroke[:, 0]
         y_coords = stroke[:, 1]
         speed_list = []
-        position_of_net_cross = get_coordinate_of_net_cross(x_coords, midpoint_x)
+        position_of_net_cross = get_coordinate_of_net_cross(x_coords)
         distances = []
 
+        print(position_of_net_cross, 'pos')
+        # sys.exit(1)
+
         for point in range(position_of_net_cross-buffer, position_of_net_cross+buffer+1):
-            speed_list.append([x_coords[point], y_coords[point])
+            speed_list.append([x_coords[point], y_coords[point]])
         
         for i in range(len(speed_list)-1):
             distance.append(euclidian_distance(
@@ -147,14 +156,18 @@ def caluclate_speed_and_placements():
     speed_for_each_stroke = get_speed()
     for bounces in zip(left_bounces.iterrows(), right_bounces.iterrows()):
         left, right = bounces[0][1], bounces[1][1]
-        data_ = 
-        {
-            "stroke_number" : left['stroke_number']
-            "left" : get_transposed_coordinates(left['x'], left['y'])
-            "right" : get_transposed_coordinates(right['x'], right['y'])
+        data_ = {
+            "stroke_number" : left['stroke_number'],
+            "left" : get_transposed_coordinates(left['x'], left['y']),
+            "right" : get_transposed_coordinates(right['x'], right['y']),
             "speed" : speed_for_each_stroke[left['stroke_number']]
         }
         stroke_data['data'].append(data_)
     
     file_ = open('stroke_speed_result.json', 'w')
     json.dump(stroke_data, file_)
+
+
+if __name__ == "__main__":
+    get_speed()
+    caluclate_speed_and_placements()

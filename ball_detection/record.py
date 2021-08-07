@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
 import argparse
 from pathlib import Path
-from time import monotonic
-import time
+import os
 from multiprocessing import Process, Queue
 import cv2
 import depthai as dai
-from datetime import datetime
+import numpy as np
+import time
+import pandas as pd
 import paho.mqtt.client as mqtt
 import json
 import sys
-import pandas as pd
 
+data_to_save = {
+    'stroke_number': [],
+    'frame_number': [],
+    'x' : [],
+    'y' : [],
+    'z' : [],
+    'confidence' : [],
+    'timestamp' : [],
+}
+
+# meta_data_ = open('../ips.json', 'r')
 
 broker_config = json.load(open('../ips.json', 'r'))
 broker_ip = broker_config['broker_ip']
@@ -25,306 +36,268 @@ client = mqtt.Client()
 #     # exit if fails
 #     sys.exit(1)
 
-client.publish("ball/connected", "Ball detector Connected!")
-
-def check_range(min_val, max_val):
-    def check_fn(value):
-        ivalue = int(value)
-        if min_val <= ivalue <= max_val:
-            return ivalue
-        else:
-            raise argparse.ArgumentTypeError(
-                "{} is an invalid int value, must be in range {}..{}".format(value, min_val, max_val)
-            )
-    return check_fn
-
 def get_path_name():
-    f = open('filenames.txt', 'a+')
-    filename_ = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-    filename_ = '../data/data-' + filename_
-    f.write(filename_ +'\n')
-    return str(filename_)
+	f = open('filenames.txt', 'r')
+	data_ = f.readlines()[-1]
+	data_ = data_[0:-1] # removing newline char at the end
+	return str(data_)
+
+def find_frames_to_process():
+    df = pd.read_csv('recorded_timestamps.csv')
+    recorded_ = pd.read_csv('vibrator.csv')
+    final_ranges = []
+    final_timestamps = []
+    for _, row in recorded_.iterrows():
+        start_range, end_range = row['left'], row['right']
+        new_df = df[df['timestamp'].between(start_range, end_range, inclusive=True)]
+        list_ = np.asarray(list(new_df['frame_number']))
+        offset = 9
+        list_ = list_+offset
+        final_ranges.append(list_)
+        final_timestamps.append(list(new_df['timestamp']))
+    # print(final_timestamps)
+    # final_ranges.pop(), final_timestamps.pop()
+    return final_ranges[0:-3], final_timestamps[0:-3]
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-t', '--threshold', default=0.3, type=float, help="Maximum difference between packet timestamps to be considered as synced")
+
+# try:
+labelMap = ['ball']
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-co', '--csv_output', help="Enter where to save the csv file along with file name", default='final_result.csv')
 parser.add_argument('-p', '--path', default=get_path_name(), type=str, help="Path where to store the captured data")
-parser.add_argument('-d', '--dirty', action='store_true', default=False, help="Allow the destination path not to be empty")
-# parser.add_argument('-nd', '--no-debug', dest="prod", action='store_true', default=False, help="Do not display debug output")
-parser.add_argument('-m', '--time', type=float, default=float("inf"), help="Finish execution after X seconds")
-parser.add_argument('-af', '--autofocus', type=str, default=None, help="Set AutoFocus mode of the RGB camera", choices=list(filter(lambda name: name[0].isupper(), vars(dai.CameraControl.AutoFocusMode))))
-parser.add_argument('-mf', '--manualfocus', type=check_range(0, 255), help="Set manual focus of the RGB camera [0..255]")
-parser.add_argument('-et', '--exposure-time', type=check_range(1, 33000), help="Set manual exposure time of the RGB camera [1..33000]")
-parser.add_argument('-ei', '--exposure-iso', type=check_range(100, 1600), help="Set manual exposure ISO of the RGB camera [100..1600]")
-
-parser.add_argument('-nd', '--no-depth', action='store_true', default=False, help="Do not save depth map. If set, mono frames will be saved")
-parser.add_argument('-mono', '--mono', action='store_true', default=True, help="Save mono frames")
-parser.add_argument('-e', '--encode', action='store_true', default=True, help="Encode mono frames into jpeg. If set, it will enable -mono as well")
-
+parser.add_argument('-s', '--show', default=False, type=bool, help="Show opencv windows")
 args = parser.parse_args()
 
-try:
-    exposure = [args.exposure_time, args.exposure_iso]
-    if any(exposure) and not all(exposure):
-        raise RuntimeError("Both --exposure-time and --exposure-iso needs to be provided")
+# Get the stored frames path
+dest = Path(args.path).resolve().absolute()
+frames_sorted, timestamp_frames = find_frames_to_process()
+pipeline = dai.Pipeline()
 
-    SAVE_MONO = args.encode or args.mono or args.no_depth
+left_in = pipeline.createXLinkIn()
+right_in = pipeline.createXLinkIn()
+rgb_in = pipeline.createXLinkIn()
 
-    dest = Path(args.path).resolve().absolute()
-    dest_count = len(list(dest.glob('*')))
-    if dest.exists() and dest_count != 0 and not args.dirty:
-        raise ValueError(f"Path {dest} contains {dest_count} files. Either specify new path or use \"--dirty\" flag to use current one")
-    dest.mkdir(parents=True, exist_ok=True)
+left_in.setStreamName("left")
+right_in.setStreamName("right")
+rgb_in.setStreamName("rgbIn")
 
-    pipeline = dai.Pipeline()
+pipeline.setOpenVINOVersion(dai.OpenVINO.Version.VERSION_2021_1)
 
-    rgb = pipeline.createColorCamera()
+stereo = pipeline.createStereoDepth()
+stereo.setConfidenceThreshold(240)
+median = dai.StereoDepthProperties.MedianFilter.KERNEL_7x7
+stereo.setMedianFilter(median)
+stereo.setLeftRightCheck(False)
+stereo.setExtendedDisparity(False)
+stereo.setSubpixel(False)
+stereo.setInputResolution(640,480)
 
-    rgb.setPreviewKeepAspectRatio(keep=False)
-    rgb.setPreviewSize(416, 416)
-    rgb.setBoardSocket(dai.CameraBoardSocket.RGB)
-    rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-    rgb.setInterleaved(False)
-    rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
-    rgb.setFps(90)
+left_in.out.link(stereo.left)
+right_in.out.link(stereo.right)
 
-    # Create output for the rgb
-    rgbOut = pipeline.createXLinkOut()
-    rgbOut.setStreamName("color")
+right_s_out = pipeline.createXLinkOut()
+right_s_out.setStreamName("rightS")
+stereo.syncedRight.link(right_s_out.input)
 
-    rgb_encoder = pipeline.createVideoEncoder()
-    rgb_encoder.setDefaultProfilePreset(rgb.getVideoSize(), rgb.getFps(), dai.VideoEncoderProperties.Profile.MJPEG)
-    rgb_encoder.setLossless(False)
-    rgb.video.link(rgb_encoder.input)
-    rgb_encoder.bitstream.link(rgbOut.input)
+left_s_out = pipeline.createXLinkOut()
+left_s_out.setStreamName("leftS")
+stereo.syncedLeft.link(left_s_out.input)
 
-    # Create mono cameras
-    left = pipeline.createMonoCamera()
-    left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-    left.setBoardSocket(dai.CameraBoardSocket.LEFT)
-    left.setFps(50)
+spatialDetectionNetwork = pipeline.createYoloSpatialDetectionNetwork()
+spatialDetectionNetwork.setBlobPath("./models/ball.blob")
+spatialDetectionNetwork.setConfidenceThreshold(0.5)
+spatialDetectionNetwork.input.setBlocking(False)
+spatialDetectionNetwork.setBoundingBoxScaleFactor(0.3)
+spatialDetectionNetwork.setDepthLowerThreshold(100)
+spatialDetectionNetwork.setDepthUpperThreshold(5000)
+#YOLO SPECIFIC
+spatialDetectionNetwork.setNumClasses(1)
+spatialDetectionNetwork.setCoordinateSize(4)
+spatialDetectionNetwork.setAnchors(np.array([10,14, 23,27, 37,58, 81,82, 135,169, 344,319]))
+spatialDetectionNetwork.setAnchorMasks({ "side26": np.array([1,2,3]), "side13": np.array([3,4,5]) })
+spatialDetectionNetwork.setIouThreshold(0.5)
 
-    right = pipeline.createMonoCamera()
-    right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-    right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
-    right.setFps(50)
+stereo.depth.link(spatialDetectionNetwork.inputDepth)
+rgb_in.out.link(spatialDetectionNetwork.input)
 
-    stereo = pipeline.createStereoDepth()
-    stereo.setConfidenceThreshold(240)
-    median = dai.StereoDepthProperties.MedianFilter.KERNEL_7x7
-    stereo.setMedianFilter(median)
-    stereo.setLeftRightCheck(False)
-    stereo.setExtendedDisparity(False)
-    stereo.setSubpixel(False)
+bbOut = pipeline.createXLinkOut()
+bbOut.setStreamName("bb")
+spatialDetectionNetwork.boundingBoxMapping.link(bbOut.input)
 
-    left.out.link(stereo.left)
-    right.out.link(stereo.right)
+detOut = pipeline.createXLinkOut()
+detOut.setStreamName("det")
+spatialDetectionNetwork.out.link(detOut.input)
 
-    if not args.no_depth:
-        depthOut = pipeline.createXLinkOut()
-        depthOut.setStreamName("depth")
-        stereo.depth.link(depthOut.input)
+depthOut = pipeline.createXLinkOut()
+depthOut.setStreamName("depth")
+spatialDetectionNetwork.passthroughDepth.link(depthOut.input)
 
-    controlIn = pipeline.createXLinkIn()
-    controlIn.setStreamName('control')
-    controlIn.out.link(rgb.inputControl)
+rgbOut = pipeline.createXLinkOut()
+rgbOut.setStreamName("rgb")
+spatialDetectionNetwork.passthrough.link(rgbOut.input)
 
-    # Create output
-    if SAVE_MONO:
-        leftOut = pipeline.createXLinkOut()
-        leftOut.setStreamName("left")
-        rightOut = pipeline.createXLinkOut()
-        rightOut.setStreamName("right")
-        if args.encode:
-            left_encoder = pipeline.createVideoEncoder()
-            left_encoder.setDefaultProfilePreset(left.getResolutionSize(), left.getFps(), dai.VideoEncoderProperties.Profile.MJPEG)
-            left_encoder.setLossless(False)
-            stereo.rectifiedLeft.link(left_encoder.input)
-            left_encoder.bitstream.link(leftOut.input)
+def to_planar(arr, shape):
+    return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
-            right_encoder = pipeline.createVideoEncoder()
-            right_encoder.setDefaultProfilePreset(right.getResolutionSize(), right.getFps(), dai.VideoEncoderProperties.Profile.MJPEG)
-            right_encoder.setLossless(False)
-            stereo.rectifiedRight.link(right_encoder.input)
-            right_encoder.bitstream.link(rightOut.input)
-        else:
-            stereo.rectifiedLeft.link(leftOut.input)
-            stereo.rectifiedRight.link(rightOut.input)
+def append_data(stroke_number, frame_number, x, y, z, confidence, timestamp):
+    global data_to_save
+    data_to_save['stroke_number'].append(stroke_number)
+    data_to_save['frame_number'].append(frame_number)
+    data_to_save['x'].append(x)
+    data_to_save['y'].append(y)
+    data_to_save['z'].append(z)
+    data_to_save['confidence'].append(confidence)
+    data_to_save['timestamp'].append(timestamp)
 
-    # https://stackoverflow.com/a/7859208/5494277
-    def step_norm(value):
-        return round(value / args.threshold) * args.threshold
-
-
-    def seq(packet):
-        return packet.getSequenceNum()
-
-
-    def tst(packet):
-        return packet.getTimestamp().total_seconds()
-
-
-    # https://stackoverflow.com/a/10995203/5494277
-    def has_keys(obj, keys):
-        return all(stream in obj for stream in keys)
-
-
-    class PairingSystem:
-        seq_streams = []
-        if SAVE_MONO:
-            seq_streams.append("left")
-            seq_streams.append("right")
-        if not args.no_depth:
-            seq_streams.append("depth")
-        # print(seq_streams)
-        ts_streams = ["color"]
-        seq_ts_mapping_stream = seq_streams[0]
-
-        def __init__(self):
-            self.ts_packets = {}
-            self.seq_packets = {}
-            self.last_paired_ts = None
-            self.last_paired_seq = None
-
-        def add_packets(self, packets, stream_name):
-            if packets is None:
-                return
-            if stream_name in self.seq_streams:
-                for packet in packets:
-                    seq_key = seq(packet)
-                    self.seq_packets[seq_key] = {
-                        **self.seq_packets.get(seq_key, {}),
-                        stream_name: packet
-                    }
-            elif stream_name in self.ts_streams:
-                for packet in packets:
-                    ts_key = step_norm(tst(packet))
-                    self.ts_packets[ts_key] = {
-                        **self.ts_packets.get(ts_key, {}),
-                        stream_name: packet
-                    }
-
-        def get_pairs(self):
-            results = []
-            for key in list(self.seq_packets.keys()):
-                if has_keys(self.seq_packets[key], self.seq_streams):
-                    ts_key = step_norm(tst(self.seq_packets[key][self.seq_ts_mapping_stream]))
-                    if ts_key in self.ts_packets and has_keys(self.ts_packets[ts_key], self.ts_streams):
-                        results.append({
-                            **self.seq_packets[key],
-                            **self.ts_packets[ts_key]
-                        })
-                        self.last_paired_seq = key
-                        self.last_paired_ts = ts_key
-            if len(results) > 0:
-                self.collect_garbage()
-            return results
-
-        def collect_garbage(self):
-            for key in list(self.seq_packets.keys()):
-                if key <= self.last_paired_seq:
-                    del self.seq_packets[key]
-            for key in list(self.ts_packets.keys()):
-                if key <= self.last_paired_ts:
-                    del self.ts_packets[key]
-
-    frame_q = Queue()
-    timekeeper = []
-    folder_num = 0
-
-    def save_to_csv():
-        df = pd.DataFrame(data=timekeeper, columns=['frame_number', 'timestamp'] )
-        # print(timekeeper)
-        df.to_csv("recorded_timestamps.csv" )
-        # print(df)
-
-    def append_time_stamp(frame_number):
-        timekeeper.append([frame_number, time.time()])
-
-    def store_frames(in_q):
-        global folder_num
-        def save_png(frames_path, name, item):
-            cv2.imwrite(str(frames_path / Path(f"{stream_name}.png")), item)
-        def save_jpeg(frames_path, name, item):
-            with open(str(frames_path / Path(f"{stream_name}.jpeg")), "wb") as f:
-                f.write(bytearray(item))
-        def save_depth(frames_path, name, item):
-            with open(str(frames_path / Path(f"{stream_name}")), "wb") as f:
-                f.write(bytearray(item))
-        while True:
-            frames_dict = in_q.get()
-            if frames_dict is None:
-                save_to_csv()
-                return
-            append_time_stamp(folder_num)
-            save_to_csv()
-            frames_path = dest / Path(str(folder_num))
-            folder_num = folder_num + 1
-            frames_path.mkdir(parents=False, exist_ok=False)
-            
-            for stream_name, item in frames_dict.items():
-                if stream_name == "depth": save_depth(frames_path, stream_name, item)
-                elif stream_name == "color": save_jpeg(frames_path, stream_name, item)
-                elif args.encode: save_jpeg(frames_path, stream_name, item)
-                else: save_png(frames_path, stream_name, item)
+def save_data():
+    global data_to_save
     
+    data_ = pd.DataFrame(data_to_save)
+    data_.to_csv(args.csv_output)
 
+# Pipeline defined, now the device is connected to
+with dai.Device(pipeline) as device:
+#    device.startPipeline()
 
-    store_p = Process(target=store_frames, args=(frame_q, ))
-    store_p.start()
-    ps = PairingSystem()
-    count = 0
-    # Pipeline defined, now the device is connected to
-    with dai.Device(pipeline) as device:
+    qLeft = device.getInputQueue('left')
+    qRight = device.getInputQueue('right')
+    qRgbIn = device.getInputQueue('rgbIn')
 
-        qControl = device.getInputQueue('control')
+    qLeftS = device.getOutputQueue(name="leftS", maxSize=4, blocking=False)
+    qRightS = device.getOutputQueue(name="rightS", maxSize=4, blocking=False)
+    qDepth = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
 
-        ctrl = dai.CameraControl()
-        if args.autofocus:
-            ctrl.setAutoFocusMode(getattr(dai.CameraControl.AutoFocusMode, args.autofocus))
-        if args.manualfocus:
-            ctrl.setManualFocus(args.manualfocus)
-        if all(exposure):
-            ctrl.setManualExposure(*exposure)
+    qBb = device.getOutputQueue(name="bb", maxSize=4, blocking=False)
+    qDet = device.getOutputQueue(name="det", maxSize=4, blocking=False)
+    qRgbOut = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
-        qControl.send(ctrl)
+    color = (255, 0, 0)
+    # [[1231231],[12313123],[123124131]]
+    # Read rgb/mono frames, send them to device and wait for the spatial object detection results
+    # print(frames_sorted)
+    for stroke in range(len(frames_sorted)-1):
+        for timestamp_index, frame_folder in enumerate(frames_sorted[stroke]):
+            files = os.listdir(str((Path(args.path) / str(frame_folder)).resolve().absolute()))
+            # If there is no rgb/left/right frame in the folder, skip this "frame"
+            if [f.startswith("color") or f.startswith("left") or f.startswith("right") for f in files].count(True) < 3: continue
 
-        cfg = dai.ImageManipConfig()
+            # Read the images from the FS
+            images = [cv2.imread(str((Path(args.path) / str(frame_folder) / file).resolve().absolute()), cv2.IMREAD_GRAYSCALE if file.startswith("right") or file.startswith("left") else None) for file in files]
+            for i in range(len(files)):
+                right = files[i].startswith("right")
+                if right or files[i].startswith("left"):
+                    h, w = images[i].shape
+                    frame = dai.ImgFrame()
+                    frame.setData(cv2.flip(images[i], 1)) # Flip the rectified frame
+                    frame.setType(dai.RawImgFrame.Type.RAW8)
+                    frame.setWidth(w)
+                    frame.setHeight(h)
+                    frame.setInstanceNum((2 if right else 1))
+                    if right: qRight.send(frame)
+                    else: qLeft.send(frame)
 
-        start_ts = monotonic()
-        # set flag for record
+                # elif files[i].startswith("disparity"):
+                #     cv2.imshow("original disparity", images[i])
+                elif files[i].startswith("color"):
+                    preview = images[i][0:1080, 420:1500] # Crop before sending
+                    frame = dai.ImgFrame()
+                    frame.setType(dai.RawImgFrame.Type.BGR888p)
+                    frame.setData(to_planar(preview, (416, 416)))
+                    frame.setWidth(416)
+                    frame.setHeight(416)
+                    frame.setInstanceNum(0)
+                    qRgbIn.send(frame)
+                    #cv2.imshow("preview", preview)
 
-        while True:
-            for queueName in PairingSystem.seq_streams + PairingSystem.ts_streams:
-                ps.add_packets(device.getOutputQueue(queueName).tryGetAll(), queueName)
+            inRgb = qRgbOut.get()
+            rgbFrame = inRgb.getCvFrame().reshape((416, 416, 3))
 
-            pairs = ps.get_pairs()
-            for pair in pairs:
-                obj = {"color": pair["color"].getData() }
-                if SAVE_MONO:
-                    if args.encode:
-                        obj["left"] = pair["left"].getData()
-                        obj["right"] = pair["right"].getData()
-                    else:
-                        obj["left"] = pair["left"].getCvFrame()
-                        obj["right"] = pair["right"].getCvFrame()
-                if not args.no_depth:
-                    obj["depth"] = pair["depth"].getFrame()
+            if args.show:
+                cv2.imshow("left", qLeftS.get().getCvFrame())
+                cv2.imshow("right", qRightS.get().getCvFrame())
 
-                frame_q.put(obj)
-                if count % 60 == 0:
-                    # publish count
-                    client.publish("ball/progress/record", str(count))
-                count += 1
+            depthFrame = qDepth.get().getFrame()
+            depthFrameColor = cv2.normalize(depthFrame, None, 255, 0, cv2.NORM_INF, cv2.CV_8UC1)
+            depthFrameColor = cv2.equalizeHist(depthFrameColor)
+            depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
+
+            height = inRgb.getHeight()
+            width = inRgb.getWidth()
+
+            inDet = qDet.tryGet()
+            if inDet is not None:
+                if len(inDet.detections) != 0:
+                    # Display boundingbox mappings on the depth frame
+                    bbMapping = qBb.get()
+                    roiDatas = bbMapping.getConfigData()
+                    for roiData in roiDatas:
+                        roi = roiData.roi
+                        roi = roi.denormalize(depthFrameColor.shape[1], depthFrameColor.shape[0])
+                        topLeft = roi.topLeft()
+                        bottomRight = roi.bottomRight()
+                        xmin = int(topLeft.x)
+                        ymin = int(topLeft.y)
+                        xmax = int(bottomRight.x)
+                        ymax = int(bottomRight.y)
+                        cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), (0,255,0), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX)
+
+                # Display (spatial) object detections on the color frame
+                for detection in inDet.detections:
+                    # Denormalize bounding box
+                    x1 = int(detection.xmin * 416)
+                    x2 = int(detection.xmax * 416)
+                    y1 = int(detection.ymin * 416)
+                    y2 = int(detection.ymax * 416)
+                    try:
+                        label = labelMap[detection.label]
+                    except:
+                        label = detection.label
+                    cv2.putText(rgbFrame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                    cv2.putText(rgbFrame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                    cv2.putText(rgbFrame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                    cv2.putText(rgbFrame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                    cv2.putText(rgbFrame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                    cv2.rectangle(rgbFrame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
+
+                    # append_data(
+                    #     stroke_number=stroke+1,
+                    #     frame_number= frame_folder,
+                    #     x=int(detection.spatialCoordinates.x),
+                    #     y=int(detection.spatialCoordinates.y),
+                    #     z=int(detection.spatialCoordinates.z),
+                    #     confidence=detection.confidence,
+                    #     timestamp=timestamp_frames[stroke][timestamp_index]
+                    #     )
+                    append_data(
+                        stroke_number=stroke+1,
+                        frame_number= frame_folder,
+                        x=int(detection.spatialCoordinates.x),
+                        y=int(detection.spatialCoordinates.y),
+                        z=int(detection.spatialCoordinates.z),
+                        confidence=detection.confidence,
+                        timestamp=timestamp_frames[stroke][timestamp_index]
+                        )
+            
+            # try:
+            #     progress = frame_folder/len(frames_sorted[stroke])*100
+            #     if int(frame_folder) % int(0.05*len(frames_sorted[stroke]) == 0):
+            #         client.publish("ball/progress/replay", f"Stroke number : {stroke}, {int(progress)}%")
+            # except:
+            #     print('div by 0 prolly')
+            #     pass
+
+            if args.show:
+                cv2.imshow("rgb", rgbFrame)
+                cv2.imshow("depth", depthFrameColor)
 
             if cv2.waitKey(1) == ord('q'):
                 break
+    save_data()
+    client.publish("ball/replay/finished", "Finished Replaying.")
+    sys.exit(0)
+# except Exception as e:
+#     client.publish("ball/error", str(e))
+#     print(e)
 
-            if monotonic() - start_ts > args.time:
-                break
-
-    frame_q.put(None)
-    store_p.join()
-    client.publish("ball/record/finished", str(count))
-except KeyboardInterrupt:
-    client.publish("ball/error", str('err'))
-    print(e)
