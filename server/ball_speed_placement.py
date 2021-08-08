@@ -147,7 +147,7 @@ def get_transposed_coordinates(x, y):
     return [x, y]
 
 
-def caluclate_speed_and_placements():
+def calculate_speed_and_placements():
     global stroke_data
     # do speed tomorrow
     result = pd.read_csv('result.csv')
@@ -170,4 +170,4 @@ def caluclate_speed_and_placements():
 
 if __name__ == "__main__":
     get_speed()
-    caluclate_speed_and_placements()
+    calculate_speed_and_placements()
