@@ -95,11 +95,10 @@ def get_stroke_preds():
     preds = np.argmax(preds, axis=1)
     # print(preds.shape)
 
-    for stroke in preds:
+    for stroke in preds[:4]:
         data = {
-            "stroke_name" : str(_get_label(stroke[0])),
-            "left" : "",
-            "right" : "",
+            "stroke_name" : str(_get_label(stroke)),
+            "position" : "",
             "speed" : "",
         }
         stroke_data["data"].append(data)
