@@ -13,7 +13,7 @@
     - name: copy vibrator csv from server to ball_detector
       when: inventory_hostname in groups['ball_detector']
       copy:
-        src: ../server/timestamp_csvs/test.csv
+        src: ../server/timestamp_csvs/result.csv
         dest: ~/topspin-tracker/ball_detection/vibrator.csv
       
     - name: Start replay on ball_detector
