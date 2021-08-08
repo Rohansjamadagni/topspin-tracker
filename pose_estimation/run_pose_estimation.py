@@ -110,7 +110,8 @@ def main():
         if camera == 1 and frame_counter%60 == 0:
             client.publish(f'pose_{camera}/progress', json.dumps(frame_counter))
 
-        frame_counter += 1
+        if camera == 1:
+            frame_counter += 1
 
         if frame is None: break
 
