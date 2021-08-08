@@ -145,7 +145,6 @@ class BallCam(mqtt.Client, Ansible):
 
     def __on_finish_record(self, contents):
         print(f"Done recording {contents} frames.")
-        self.start_replay()
 
     def __on_replay(self, contents):
         # ball detection on camera and generating final_result.csv
