@@ -67,7 +67,10 @@ def main():
                 vib_list = []
 
         f = open('../flex.tape', 'r')
-        number = int(f.read()[0])
+        try:
+            number = int(f.read()[0])
+        except:
+            number = 1
 
         if number == 1:
             break
