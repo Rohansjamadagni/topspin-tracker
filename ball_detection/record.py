@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+import os
 import argparse
 from pathlib import Path
 from time import monotonic
@@ -19,13 +21,13 @@ broker_port = broker_config['broker_port']
 
 os.system('echo 0 > ../flex.tape')
 
-client = mqtt.Client()z
+client = mqtt.Client()
 # connection refused if fails
-# try:
-#     client.connect(broker_ip, broker_port)
-# except:
-#     # exit if fails
-#     sys.exit(1)
+try:
+    client.connect(broker_ip, broker_port)
+except:
+    # exit if fails
+    sys.exit(1)
 
 client.publish("ball/connected", "Ball detector Connected!")
 
@@ -260,13 +262,6 @@ try:
             append_time_stamp(folder_num)
             save_to_csv()
             
-            f = open('../flex.tape', 'r')
-            number = int(f.read()[0])
-
-            if number == 1:
-                break
-            f.close()
-
             frames_path = dest / Path(str(folder_num))
             folder_num = folder_num + 1
             frames_path.mkdir(parents=False, exist_ok=False)
@@ -326,6 +321,16 @@ try:
                     client.publish("ball/progress/record", str(count))
                 count += 1
 
+            f = open('../flex.tape', 'r')
+            try:
+                number = int(f.read()[0])
+            except:
+                number = 1
+
+            if number == 1:
+                break
+            f.close()
+
             if cv2.waitKey(1) == ord('q'):
                 break
 
@@ -337,4 +342,7 @@ try:
     client.publish("ball/record/finished", str(count))
 except KeyboardInterrupt:
     client.publish("ball/error", str('err'))
-    print(e)
+    try:
+        print(e)
+    except:
+        number = 1
