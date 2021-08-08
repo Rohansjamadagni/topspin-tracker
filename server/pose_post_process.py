@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import tensorflow.keras as K
+import json
 
 import sys
 sys.path.insert(0, '..')
@@ -25,11 +28,28 @@ def _get_columns():
 
     return columns
 
+def _get_label(number):
+    label_map = {0: 'Forehand Topspin',
+                  1: 'Backhand Topspin',
+                  2: 'Forehand Push',
+                  3: 'Backhand Push',
+                  4: 'Forehand Block',
+                  5: 'Backhand Block',
+                  6: 'Forehand Flick',
+                  7: 'Backhand Flick',
+                  8: 'Forehand Lob',
+                  9: 'Backhand Lob'}
+
+    return label_map[number]
+
 def get_stroke_preds(session):
     '''
     Uses the session number to read required csvs and send them
     to the stroke recognition NN for inference
     '''
+    stroke_data = {
+        "data" : []
+    }
 
     columns = _get_columns()
 
@@ -74,6 +94,18 @@ def get_stroke_preds(session):
     preds = model.predict(strokes)
     preds = np.argmax(preds, axis=1)
     # print(preds.shape)
+
+    for stroke in preds:
+        data = {
+            "stroke_name" : str(_get_label(stroke[0])),
+            "left" : "",
+            "right" : "",
+            "speed" : "",
+        }
+        stroke_data["data"].append(data)
+
+    file_ = open('result.json', 'w')
+    json.dump(stroke_data, file_)
 
     return preds
 
