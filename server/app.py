@@ -15,9 +15,9 @@ eel.init(config["web_folder"])
 def start_record(Generate_Coordinates):
     if(Generate_Coordinates):
         print("Generating Coords....")
-        os.system('python3 Generate_Table_Coordinates.py') 
+        os.system('python3 Generate_Table_Coordinates.py')
     print("Starting to record...")
-    os.system('ansible-playbook -i ../ansible/hosts ../ansible/control.yml  &')
+    os.system('ansible-playbook -i ../ansible/hosts.yml ../ansible/control.yml  &')
     # call control.yml
     return 
 
@@ -34,7 +34,8 @@ def populate_tables():
 def stop_recording():
     print("stop record and analyse")
     eel.publish_stage("Analysing Video...",0)
-    os.system('ansible-playbook -i ../ansible/hosts ../ansible/replay.yml')
+    os.system('ansible-playbook -i ../ansible/hosts.yml ../ansible/replay.yml')
+    os.system('python3 pose_post_process.py')
     eel.publish_stage("Video Successfully Analysed",100)
     eel.enable_button()
     return
