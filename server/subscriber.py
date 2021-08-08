@@ -18,10 +18,10 @@ broker_config = json.load(open('../ips.json', 'r'))
 broker_ip = broker_config['broker_ip']
 broker_port = broker_config['broker_port']
 
-vib = Vibrator(cam_number=1, csv_dest=f"timestamp_csvs/test.csv")
+vib = Vibrator(cam_number=1, csv_dest=f"timestamp_csvs/result.csv")
 ball = BallCam(cam_number=1)
-pose_1 = PoseCam(cam_number=1, csv_dest=f"keypoint_csvs/cam_1/test.csv")
-pose_2 = PoseCam(cam_number=2, csv_dest=f"keypoint_csvs/cam_2/test.csv")
+pose_1 = PoseCam(cam_number=1, csv_dest=f"keypoint_csvs/cam_1/result.csv")
+pose_2 = PoseCam(cam_number=2, csv_dest=f"keypoint_csvs/cam_2/result.csv")
 
 vib.connect(broker_ip, broker_port)
 ball.connect(broker_ip, broker_port)
