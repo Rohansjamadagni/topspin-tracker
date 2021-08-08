@@ -5,8 +5,16 @@ data/
 # ignore pycache
 __pycache__
 
+# ignore all data files and directories
 *.csv
 *.mp4
 
 *csvs
 *videos
+
+# ignore all image files
+*.png
+*.jpg
+*.jpeg
+
+pictures
