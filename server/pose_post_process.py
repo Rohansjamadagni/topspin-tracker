@@ -42,7 +42,7 @@ def _get_label(number):
 
     return label_map[number]
 
-def get_stroke_preds(session):
+def get_stroke_preds():
     '''
     Uses the session number to read required csvs and send them
     to the stroke recognition NN for inference
@@ -56,10 +56,10 @@ def get_stroke_preds(session):
     FRAME_THRESHOLD = 30
     NUM_PTS = len(columns)
 
-    kpt_csv1 = f'keypoint_csvs/cam_1/session_{session}.csv'
-    kpt_csv2 = f'keypoint_csvs/cam_2/session_{session}.csv'
+    kpt_csv1 = f'keypoint_csvs/cam_1/result.csv'
+    kpt_csv2 = f'keypoint_csvs/cam_2/result.csv'
 
-    vib_csv = f'timestamp_csvs/session_{session}.csv'
+    vib_csv = f'timestamp_csvs/result.csv'
 
     splitter_1 = DataSplitter(main_csv_file=kpt_csv1, timestamps_file=vib_csv)
     splitter_2 = DataSplitter(main_csv_file=kpt_csv2, timestamps_file=vib_csv)
@@ -110,10 +110,11 @@ def get_stroke_preds(session):
     return preds
 
 def main():
-    log = open('sessions.log', 'r')
-    session = int(log.readlines()[-1][0])
+    # log = open('sessions.log', 'r')
+    # session = int(log.readlines()[-1][0])
 
-    preds = get_stroke_preds(session)
+    # preds = get_stroke_preds(session)
+    preds = get_stroke_preds()
 
     print(preds[:10])
 
