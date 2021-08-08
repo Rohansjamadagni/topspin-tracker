@@ -59,8 +59,9 @@ if __name__ == '__main__':
             pts = np.asarray(coordinates).reshape((-1, 1, 2))
             cv2.polylines(img, [pts], True, (255, 0, 255),
                           thickness=3)  # coordinates in cw manner
-        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
     # cv2.imshow("res", result)
 
     cv2.destroyAllWindows()
