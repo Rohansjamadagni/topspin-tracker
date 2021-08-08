@@ -3,8 +3,12 @@
   gather_facts: no
 
   tasks:
-    - name: kill all the processes
-      shell: pkill -2 -f "record.py" & pkill -2 -f "vibrator.py" & pkill -2 -f "run_pose_estimation.py" 
+    # - name: kill all the processes
+    #   shell: pkill -2 -f "record.py" & pkill -2 -f "vibrator.py" & pkill -2 -f "run_pose_estimation.py" 
+    - name: change file 
+      shell: echo 1 > flex.tape
+      args:
+        chdir: ~/topspin-tracker/
 
     - name: copy vibrator csv from server to ball_detector
       when: inventory_hostname in groups['ball_detector']
