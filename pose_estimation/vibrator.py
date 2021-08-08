@@ -4,6 +4,9 @@ import json
 import paho.mqtt.client as mqtt
 import sys
 import argparse
+import os
+
+os.system('echo 0 > ../flex.tape')
 
 parser = argparse.ArgumentParser()
 

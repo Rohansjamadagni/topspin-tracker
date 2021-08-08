@@ -5,6 +5,9 @@ import signal
 import argparse
 import time
 import json
+import os
+
+os.system('echo 0 > ../flex.tape')
 
 import paho.mqtt.client as mqtt
 
