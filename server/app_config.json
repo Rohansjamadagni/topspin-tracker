@@ -1,0 +1,10 @@
+
+{
+	"web_folder": "web_ui",
+	"index_page": "index.html",
+	"mode": "chrome",
+	"window_size": [600, 300],
+	"entry": "app.py",
+	"excluded_modules": [],
+	"build_dir": "/dist"
+}

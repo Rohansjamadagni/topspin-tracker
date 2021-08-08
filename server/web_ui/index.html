@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Table Tennis Analysis</title>
+    <!-- <p id="Files">tf</p> -->
+
+    <!-- Include eel.js - note this file doesn't exist in the 'web' directory -->
+  </head>
+
+  <body>
+    <div class="container">
+      <div
+        class="notification is-danger column is-one-third is-offset-one-third"
+        id="error_alert"
+      >
+        <button class="delete"></button>
+        <p id="error_msg" class="error_msg"></p>
+      </div>
+      <div class="is-dark">
+        <div
+          class="card column is-one-third is-offset-one-third has-text-centered"
+        >
+          <div class="toptext has-text-centered">
+            <span class="subtitle is-3 has-text-white"
+              >Table Tennis Analysis</span
+            >
+          </div>
+          <div  class="card-content">
+          <div id="table" class"table-container hidden">
+          <div id="playername" class="hidden-text">Player Name: Kaustubh</div>
+          <table id="t1" class="table hidden is-fullwidth">
+            
+          <div id="table1text" class="hidden-text">Stroke Frequency</div>
+            <thead>
+              <tr>
+              <th>Stroke Name</th>
+              <th>Number of Times Played</th>
+              </tr>
+            </thead>
+          </table>
+          <table id="t2" class="table hidden is-fullwidth">
+                <div id="table2text" class="hidden-text"> Rally Replay</div>
+              <thead>
+              <tr>
+              <th>Stroke Name</th>
+              <th>Position Quadrant</th>
+              <th>Speed of Stroke</th>
+            </tr>
+              </thead>
+          </table>
+              <div id="go_back_btn" class="hidden">
+              <button
+                class="button is-fullwidth is-link"
+                id="Back"
+                onclick="go_back()"
+              >Go Back</button>
+              </div>
+            </div>
+            <div id="control">
+            <input
+              type="text"
+              class="input is-fullwidth"
+              placeholder="Player Name"
+            />
+            <div class="column">
+              <label class="checkbox">
+                <input type="checkbox" id="checkbox" />
+                <span class="text">Regenerate Table Coordinates</span> 
+              </label>
+            </div>
+            <div>
+              <div id="start">
+              <button
+                class="button is-fullwidth is-link"
+                onclick="start_record()"
+              >
+              Start Recording
+              </button>
+              </div>
+              <br />
+              <div class="hidden" id="stop">
+              <button
+                class="button is-fullwidth is-link"
+                id="stop_btn"
+                onclick="stop_recording()"
+              >
+              Stop Record and Analyse
+              </button>
+              </div>
+
+            </div>
+            <br>
+            <nav class="pagination is-right" role="navigation" aria-label="pagination">
+              <button href="google.com" onclick="showResults()" id="results" class="is-fullwidth pagination-next button are-small is-text ">Player Reports</button>
+            </nav>
+          </div>
+
+          <div class="box hidden" id="progress_data">
+            <progress
+              id="progressbar"
+              class="progress is-success"
+              max="100"
+            ></progress>
+            <div id="stage" class="has-text-white"></div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", () => {
+        (document.querySelectorAll(".notification .delete") || []).forEach(
+          ($delete) => {
+            const $notification = $delete.parentNode;
+
+            $delete.addEventListener("click", () => {
+              $notification.parentNode.removeChild($notification);
+            });
+          }
+        );
+      });
+
+      function show_options(res) {
+        console.log(res);
+        var select = document.getElementById("files");
+
+        for (var i = 0; i < res.length; i++) {
+          var opt = res[i];
+          var el = document.createElement("option");
+          el.textContent = opt;
+          el.value = opt;
+          select.appendChild(el);
+        }
+      }
+
+      async function stop_recording() {
+        document.getElementById("progress_data").style.display = "block";
+        var progress_bar = document.getElementById("progressbar");
+        progress_bar.classList.remove("is-danger");
+        progress_bar.classList.add("is-success");
+        var btn = document.getElementById("stop_btn");
+        btn.classList.add("is-loading");
+        await eel.stop_recording()
+      }
+
+      async function start_record() {
+
+        var start_btn = document.getElementById("start");
+        document.getElementById("start").style.display = "none";
+        document.getElementById("results").disabled = true;
+        var stop_btn= document.getElementById("start");
+        document.getElementById("stop").style.display = "block";
+        var checkBox = document.getElementById("checkbox");
+        if(checkBox.checked==true){
+          await eel.start_record('True')();
+        }
+        else{
+          await eel.start_record('')();
+        }
+        console.log("YES");
+      }
+    function go_back(){
+        document.getElementById("control").style.display = "block";
+        document.getElementById("t2").style.display = "none";
+        document.getElementById("t1").style.display = "none";
+        document.getElementById("playername").style.display = "none";
+        document.getElementById("go_back_btn").style.display = "none";
+        document.getElementById("table1text").style.display = "none";
+        document.getElementById("table2text").style.display = "none";
+    } 
+    async function showResults(){
+        document.getElementById("control").style.display = "none";
+        document.getElementById("t2").style.display = "block";
+        document.getElementById("t1").style.display = "block";
+        document.getElementById("table1text").style.display = "block";
+        document.getElementById("table2text").style.display = "block";
+        document.getElementById("playername").style.display = "block";
+        document.getElementById("go_back_btn").style.display = "block";
+        eel.populate_tables()
+
+    }
+
+  eel.expose(populate_tables_js);
+  function populate_tables_js(all_strokes){
+        let t1 = document.getElementById("t1");
+        let t2 = document.getElementById("t2");
+        let stroke_frequency_dict = {}
+        /* let all_strokes={
+            playername:"pl1",
+            data:[
+                {
+                    stroke:"Topspin",
+                    position:1,
+                    speed:50
+                },
+                {
+                    stroke:"Backhand Block",
+                    position:2,
+                    speed:15
+                },
+                {
+                    stroke:"Flick",
+                    position:3,
+                    speed:30
+                },
+                {
+                    stroke:"Topspin",
+                    position:1,
+                    speed:50
+                },
+
+            ]
+            
+        }*/
+        all_strokes.data.forEach((stroke)=>{
+            let tableRow = document.createElement("tr")
+            let strokeNumber=document.createElement("td")
+            let strokeNumberTextNode=document.createTextNode(stroke.stroke)
+            strokeNumber.appendChild(strokeNumberTextNode)
+            let position=document.createElement("td")
+            let positionTextNode=document.createTextNode(stroke.position)
+            position.appendChild(positionTextNode)
+            let speed=document.createElement("td")
+            let speedTextNode=document.createTextNode(stroke.speed)
+            speed.appendChild(speedTextNode)
+            tableRow.appendChild(strokeNumber)
+            tableRow.appendChild(position)
+            tableRow.appendChild(speed)
+            t2.appendChild(tableRow)
+    
+        })
+      all_strokes.data.forEach((stroke)=>{
+    stroke_frequency_dict[stroke.stroke]= (stroke_frequency_dict[stroke.stroke] || 0 ) +1;
+      })
+
+  Object.entries(stroke_frequency_dict).forEach(([stroke_name,stroke_frequency])=>{
+      let tableRow = document.createElement("tr")
+      let strokeName =document.createElement("td")
+      let strokeNameTextNode = document.createTextNode(stroke_name)
+      strokeName.appendChild(strokeNameTextNode)
+      let strokeFrequency = document.createElement("td")
+      let strokeFrequencyTextNode = document.createTextNode(stroke_frequency)
+      strokeFrequency.appendChild(strokeFrequencyTextNode)
+      tableRow.appendChild(strokeName)
+      tableRow.appendChild(strokeFrequency)
+      console.log(tableRow)
+      t1.appendChild(tableRow)
+
+  }) 
+    }
+
+      eel.expose(enable_button);
+      function enable_button() {
+        var btn = document.getElementById("stop_btn");
+        btn.classList.remove("is-loading");
+        document.getElementById("results").disabled = false;
+        document.getElementById("stop").style.display = "none";
+        document.getElementById("start").style.display = "block";
+      }
+
+      eel.expose(publish_stage);
+      function publish_stage(stage, progress_value) {
+        document.getElementById("stage").innerHTML = stage;
+        document.getElementById("progressbar").value = progress_value;
+      }
+
+      eel.expose(show_error);
+      function show_error(error) {
+        console.log(error);
+        var progress_bar = document.getElementById("progressbar");
+        progress_bar.classList.remove("is-success");
+        progress_bar.classList.add("is-danger");
+        document.getElementById("error_alert").style.display = "block";
+        document.getElementById("error_msg").innerHTML = error;
+        enable_button();
+      }
+      
+      // say_hello_js("Javascript World!");
+      // eel.say_hello_py("Javascript World!");  // Call a Python function
+    </script>
+    <link rel="stylesheet" href="css/bulma.min.css" />
+    <link rel="stylesheet" href="css/table.css" />
+    <style>
+      #error_alert {
+        display: none;
+      }
+      .input::placeholder {
+        /* Chrome, Firefox, Opera, Safari 10.1+ */
+        color: white;
+        opacity: 0.5; /* Firefox */
+      }
+      .text{
+        color: grey;
+        outline: none;
+      }
+      .input {
+        margin-top: 1rem;
+        margin-bottom: 1em;
+        background-color: rgb(33, 36, 41);
+        color: white;
+        border-color: rgb(71, 71, 97);
+        outline: none;
+        height: 3em;
+        border-radius: 0.75rem;
+        padding-left: 0.9em;
+      }
+      .toptext {
+        padding-top: 1rem;
+        padding-bottom: 1em;
+      }
+      option {
+        font-size: 90%;
+      }
+      select {
+        font-size: 80%;
+        border-radius: 0.75rem;
+        color: white;
+        border-color: rgb(71, 71, 97);
+        background: rgb(33, 36, 41);
+        line-height: 25px;
+        outline: none;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+      }
+      td {
+        color:grey;
+        outline:none;
+      }
+
+      .table thead td, .table thead th{
+        color:grey;
+      }
+      
+      body {
+        background: rgb(42, 53, 70);
+        background: radial-gradient(
+          circle,
+          rgba(42, 53, 70, 1) 27%,
+          rgba(26, 21, 21, 1) 96%
+        );
+
+        display: flex;
+        height: 100vh;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        font-family: "Inter var", sans-serif;
+        font-weight: lighter;
+      }
+      .card {
+        background: rgb(33, 36, 41);
+        border-radius: 1.5rem;
+        width: auto;
+        min-width: min-content;
+        padding: 10px;
+        margin-right: clamp(50px, 20vw, 100px);
+        margin-left: clamp(50px, 20vw, 100px);
+      }
+      .hidden-text{
+        color: white;
+        padding: 10px;
+        display: none;
+      }
+      .hidden {
+        display: none;
+        background: rgb(36, 40, 50);
+        border-radius: 1.5rem;
+      }
+      .button {
+        /* background-color: #1d66d9; */
+        border-radius: 1rem;
+        height: 3em;
+        color: white;
+        border: none;
+        outline: none;
+        /* width: 250px; */
+      }
+      .button:disabled {
+        background-color: #1b2b42;
+        border-radius: 1rem;
+        color: #6ba5f9;
+        border: none;
+      }
+    </style>
+  </body>
+</html>

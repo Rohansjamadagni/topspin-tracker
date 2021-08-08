@@ -18,7 +18,7 @@
       
     - name: Start replay on ball_detector
       when: inventory_hostname in groups['ball_detector']
-      shell: nohup python3 replay.py > replay.log &
+      shell: python3 replay.py 
       args:
         chdir: ~/topspin-tracker/ball_detection
       tags: start_replay

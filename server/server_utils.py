@@ -1,5 +1,5 @@
 import paho.mqtt.client as mqtt
-from csv_utils import CSV
+from .csv_utils import CSV
 import json
 import sys
 import os
