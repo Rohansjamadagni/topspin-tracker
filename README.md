@@ -15,8 +15,8 @@ Respository for OpenCV AI Competition 2021 Phase II
 - [x] Train stroke recognition model
 - [ ] Ball placement logic
 - [ ] Ball speed
-- [ ] Ball co ordinates transform for visualisation
-- [ ] Web UI
+- [x] Ball visualisation
+- [x] Web UI
 
 #### Submission TODO List
 
