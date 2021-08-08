@@ -31,11 +31,19 @@ class DataSplitter:
 
         for idx, (left, right) in enumerate(zip(self.ts_df['left'], self.ts_df['right'])):
             res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
+            idxs = res.index.tolist()
+
+            for _ in range(0, 5):
+                idxs.append(idxs[-1] + 1)
+                idxs.pop(0)
+
+            res = self.main_df.loc[idxs]
+
             res.to_csv(f"{csv_save_dir}/{stroke_name}_{idx+1}.csv")
 
             if video_save_dir is not None:
                 out = self.get_writer_object(f"{video_save_dir}/{stroke_name}_{idx+1}.mp4")
-                for i in res.index.tolist():
+                for i in idxs: #res.index.tolist():
                     self.vid.set(1, i)
                     ret, frame = self.vid.read()
                     out.write(frame)
