@@ -22,3 +22,10 @@
       args:
         chdir: ~/topspin-tracker/ball_detection
       tags: start_replay
+
+    - name: Fetch final_result.csv from ball_detector
+      when: inventory_hostname in groups['ball_detector']
+      fetch:
+        src: ~/topspin-tracker/ball_detection/final_result.csv
+        dest: ../server/
+        flat: yes 
