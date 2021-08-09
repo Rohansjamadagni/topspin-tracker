@@ -66,7 +66,7 @@ def visualize_strokes():
 
     for x, strokes in enumerate(strokes_x_y):
         colors = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-        img_copy = image
+        img_copy = image.copy()
         for i in range(0, len(strokes)-1):
             start_point = strokes[i]
             end_point = strokes[i+1]
