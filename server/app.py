@@ -29,6 +29,10 @@ def populate_tables():
     eel.populate_tables_js(result)
     return
 
+@eel.expose
+def visualise():
+    os.system('python3 visualization.py')
+
 
 @eel.expose                         
 def stop_recording():
@@ -36,6 +40,7 @@ def stop_recording():
     eel.publish_stage("Analysing Video...",0)
     os.system('ansible-playbook -i ../ansible/hosts.yml ../ansible/replay.yml')
     os.system('python3 pose_post_process.py')
+    # os.system('python3 ball_speed_placement.py')
     eel.publish_stage("Video Successfully Analysed",100)
     eel.enable_button()
     return

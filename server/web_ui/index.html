@@ -55,6 +55,14 @@
                 onclick="go_back()"
               >Go Back</button>
               </div>
+              <div id="visualise_btn" class="hidden">
+              <br>
+              <button
+                class="button is-fullwidth is-link"
+                id="Vis"
+                onclick="visualise()"
+              >Visualise</button>
+              </div>
             </div>
             <div id="control">
             <input
@@ -91,10 +99,9 @@
             </div>
             <br>
             <nav class="pagination is-right" role="navigation" aria-label="pagination">
-              <button href="google.com" onclick="showResults()" id="results" class="is-fullwidth pagination-next button are-small is-text ">Player Reports</button>
+              <button  onclick="showResults()" id="results" class="is-fullwidth pagination-next button are-small is-text ">Player Reports</button>
             </nav>
           </div>
-
           <div class="box hidden" id="progress_data">
             <progress
               id="progressbar"
@@ -167,6 +174,7 @@
         document.getElementById("t1").style.display = "none";
         document.getElementById("playername").style.display = "none";
         document.getElementById("go_back_btn").style.display = "none";
+        document.getElementById("visualise_btn").style.display = "none";
         document.getElementById("table1text").style.display = "none";
         document.getElementById("table2text").style.display = "none";
     } 
@@ -178,9 +186,15 @@
         document.getElementById("table2text").style.display = "block";
         document.getElementById("playername").style.display = "block";
         document.getElementById("go_back_btn").style.display = "block";
+        document.getElementById("visualise_btn").style.display = "block";
         eel.populate_tables()
 
     }
+
+  async function visualise(){
+    eel.visualise()
+  }
+
 
   eel.expose(populate_tables_js);
   function populate_tables_js(all_strokes){
