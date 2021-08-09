@@ -66,6 +66,7 @@ def visualize_strokes():
 
     for x, strokes in enumerate(strokes_x_y):
         colors = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+        img_copy = image
         for i in range(0, len(strokes)-1):
             start_point = strokes[i]
             end_point = strokes[i+1]
@@ -78,10 +79,12 @@ def visualize_strokes():
             end_x = int(end_x*960/1920)
             end_y = int(end_y*540/1080)
             offset_ = 0 # int(150*540/1080)
-            image = cv2.line(image, (start_x, start_y+offset_), (end_x, end_y+offset_), colors, thickness=3)
-            image = cv2.resize(image, (960, 540))
-            cv2.imshow("result", image)
-            cv2.waitKey(100)
+            # image = cv2.line(image, (start_x, start_y+offset_), (end_x, end_y+offset_), colors, thickness=1)
+            # image = cv2.resize(image, (960, 540))
+            cv2.line(img_copy, (start_x, start_y+offset_), (end_x, end_y+offset_), colors, thickness=2)
+            img_copy = cv2.resize(img_copy, (960, 540))
+            cv2.imshow("result", img_copy)
+            cv2.waitKey(300)
 
     cv2.destroyAllWindows()
 
@@ -202,3 +205,5 @@ t2.start()
 
 t1.join()
 t2.join()
+
+visualize_strokes()
