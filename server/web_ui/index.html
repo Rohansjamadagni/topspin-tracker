@@ -37,6 +37,9 @@
               <th>Number of Times Played</th>
               </tr>
             </thead>
+                <tbody id="t1data">
+                </tbody>
+
           </table>
           <table id="t2" class="table hidden is-fullwidth">
                 <div id="table2text" class="hidden-text"> Rally Replay</div>
@@ -47,6 +50,8 @@
               <th>Speed of Stroke</th>
             </tr>
               </thead>
+                <tbody id="t2data">
+                </tbody>
           </table>
               <div id="go_back_btn" class="hidden">
               <button
@@ -200,6 +205,10 @@
   function populate_tables_js(all_strokes){
         let t1 = document.getElementById("t1");
         let t2 = document.getElementById("t2");
+        let t1data= document.getElementById("t1data") 
+        let t2data= document.getElementById("t2data") 
+        t1data.innerHTML = ""
+        t2data.innerHTML = "";
         let stroke_frequency_dict = {}
         /* let all_strokes={
             playername:"pl1",
@@ -231,7 +240,7 @@
         all_strokes.data.forEach((stroke)=>{
             let tableRow = document.createElement("tr")
             let strokeNumber=document.createElement("td")
-            let strokeNumberTextNode=document.createTextNode(stroke.stroke)
+            let strokeNumberTextNode=document.createTextNode(stroke.stroke_name)
             strokeNumber.appendChild(strokeNumberTextNode)
             let position=document.createElement("td")
             let positionTextNode=document.createTextNode(stroke.position)
@@ -242,11 +251,11 @@
             tableRow.appendChild(strokeNumber)
             tableRow.appendChild(position)
             tableRow.appendChild(speed)
-            t2.appendChild(tableRow)
+            t2data.appendChild(tableRow)
     
         })
       all_strokes.data.forEach((stroke)=>{
-    stroke_frequency_dict[stroke.stroke]= (stroke_frequency_dict[stroke.stroke] || 0 ) +1;
+    stroke_frequency_dict[stroke.stroke_name]= (stroke_frequency_dict[stroke.stroke_name] || 0 ) +1;
       })
 
   Object.entries(stroke_frequency_dict).forEach(([stroke_name,stroke_frequency])=>{
@@ -260,7 +269,7 @@
       tableRow.appendChild(strokeName)
       tableRow.appendChild(strokeFrequency)
       console.log(tableRow)
-      t1.appendChild(tableRow)
+      t1data.appendChild(tableRow)
 
   }) 
     }

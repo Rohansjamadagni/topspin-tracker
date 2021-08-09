@@ -23,7 +23,7 @@ def start_record(Generate_Coordinates):
 
 @eel.expose
 def populate_tables():
-    f = open("result.json", "r")
+    f = open("stroke_speed_result.json", "r")
     result = json.loads(f.read())
     f.close()
     eel.populate_tables_js(result)
