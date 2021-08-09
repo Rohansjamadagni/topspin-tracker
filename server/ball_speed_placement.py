@@ -59,7 +59,7 @@ def get_speed(buffer=3, fps = 20):
     speed_for_each_stroke = {}
     table_coordinates = read_coordinates()
     midpoint_x = find_net(table_coordinates)
-    coordinates_df = pd.read_csv('result.csv')
+    coordinates_df = pd.read_csv('final_result.csv')
     stroke_number = coordinates_df['stroke_number']
     x_coords = coordinates_df['x']
     y_coords = coordinates_df['y']
@@ -206,7 +206,7 @@ def get_transposed_coordinates(x, y):
 def caluclate_speed_and_placements():
     global stroke_data
     # do speed tomorrow
-    result = pd.read_csv('result.csv')
+    result = pd.read_csv('final_result.csv')
     left_bounces = result.groupby("stroke_number").first().reset_index()
     right_bounces = result.groupby("stroke_number").last().reset_index()
     speed_for_each_stroke = get_speed()
@@ -224,8 +224,8 @@ def caluclate_speed_and_placements():
             "speed" : speed_for_each_stroke[left['stroke_number']]
         }
         stroke_data['data'][bc] = data_
-        if bc == 3:
-            break
+        # if bc == 3:
+        #     break
         bc += 1
     
     file_ = open('stroke_speed_result.json', 'w')
