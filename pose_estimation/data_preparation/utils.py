@@ -33,11 +33,12 @@ class DataSplitter:
             res = self.main_df.loc[(self.main_df['Timestamp'] >= left) & (self.main_df['Timestamp'] <= right)]
             idxs = res.index.tolist()
 
-            for _ in range(0, 5):
-                idxs.append(idxs[-1] + 1)
-                idxs.pop(0)
+            if len(idxs) > 0:
+                for _ in range(0, 5):
+                    idxs.append(idxs[-1] + 1)
+                    idxs.pop(0)
 
-            res = self.main_df.loc[idxs]
+                res = self.main_df.loc[idxs]
 
             res.to_csv(f"{csv_save_dir}/{stroke_name}_{idx+1}.csv")
 
