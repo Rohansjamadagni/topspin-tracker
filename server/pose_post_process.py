@@ -38,7 +38,8 @@ def _get_label(number):
                   6: 'Forehand Flick',
                   7: 'Backhand Flick',
                   8: 'Forehand Lob',
-                  9: 'Backhand Lob'}
+                  9: 'Backhand Lob',
+                 10: 'Forehand Flat'}
 
     return label_map[number]
 
@@ -95,7 +96,7 @@ def get_stroke_preds():
     preds = np.argmax(preds, axis=1)
     # print(preds.shape)
 
-    for stroke in preds[:4]:
+    for stroke in preds:
         data = {
             "stroke_name" : str(_get_label(stroke)),
             "position" : "",
@@ -109,6 +110,7 @@ def get_stroke_preds():
     return preds
 
 def main():
+    print('Stroke recognition initiated.')
     # log = open('sessions.log', 'r')
     # session = int(log.readlines()[-1][0])
 
