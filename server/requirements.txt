@@ -1,0 +1,5 @@
+paho-mqtt>=1.5.1
+eel
+tensorflow==2.5.0
+pandas==1.2.0
+opencv-python==4.5.2.54
