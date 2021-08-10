@@ -65,6 +65,7 @@ Next, the `ips.json` file must be updated with the host machine's , i.e. the ser
 Once this is done, run
 ```sh
 ansible-playbook -i ansible/hosts.yml ansible/init.yml
+python3 server/subscriber.py
 ```
 
 This will initialise all systems with the required code and folder structure.
