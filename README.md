@@ -2,6 +2,8 @@
 
 The repository for The OpenCV AI Competition 2021 Phase II
 
+Link to the [demo](https://youtu.be/1SICV66rsxU)
+
 ### Region
 Central Asia + Southern Asia (Bangalore, India)
 
