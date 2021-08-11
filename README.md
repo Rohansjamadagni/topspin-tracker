@@ -26,6 +26,54 @@ git clone https://github.com/Rohansjamadagni/topspin-tracker.git
 cd topspin-tracker
 ```
 
+
+### Time Synchronization Setup
+
+The times must be synced for all the client devices through NTP for accurate splitting using vibration sensors and stroke classification.
+
+First install ntp on all the devices then enable and start the service.
+
+``` sh
+sudo apt install ntp
+sudo systemctl enable --now ntp
+```
+
+Choose any one of the clients as the host, navigate to `/etc/ntp.conf` , Remove any servers if present and add
+
+``` sh
+server 127.127.1.0
+fudge 127.127.1.0 stratum 10
+```
+
+Restart the ntp service
+
+``` sh
+sudo systemctl restart ntp
+```
+
+On the other devices add the ip address of the host previously selected as a server to `/etc/ntp.conf`
+
+``` sh
+server ip.of.host.server
+```
+
+The time should be synchronised on startup, To sync the Time instantly, run the following commands on all the client devices, 
+
+``` sh
+sudo systemctl stop ntp
+sudo ntpd -gq
+sudo systemctl start ntp
+```
+
+Now we can verify if the time has been synchronized by checking the delay using this command on all the client devices
+
+``` sh
+ntpq -pn
+```
+
+If the offset is less than 0.5ms we are good to go!
+
+
 ### OAK-D 1 and OAK-D 2
 
 These OAK-Ds must be mounted on the net clamps in such a way that the cameras face the player being analysed.
@@ -46,6 +94,7 @@ On the system interfacing with this OAK-D, run
 pip install -r ball_detection/requirements.txt
 ```
 
+
 ### Server
 
 On the server, run
@@ -53,6 +102,7 @@ On the server, run
 sudo apt install ansible
 pip install -r server/requirements.txt
 ```
+
 
 ## Run System
 
