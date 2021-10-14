@@ -1,11 +1,15 @@
 # Topspin Trackers
 
-The repository for The OpenCV AI Competition 2021 Phase II
+Repository for [The OpenCV International AI Competition 2021](https://opencv.org/opencv-ai-competition-2021/) Phase II
 
 Link to the [demo](https://youtu.be/1SICV66rsxU)
 
 ### Region
 Central Asia + Southern Asia (Bangalore, India)
+ 
+### Prizes
+- Regional winner
+- Popular Vote winners
 
 ### Team Members
 - [Kaustubh Kulkarni](https://github.com/KulkarniKaustubh)
