@@ -8,7 +8,7 @@ Link to the [demo](https://youtu.be/1SICV66rsxU)
 Central Asia + Southern Asia (Bangalore, India)
  
 ### Prizes
-- Regional winner
+- Regional winners
 - Popular Vote winners
 
 ### Team Members
